@@ -1,6 +1,7 @@
 // 开场动画：旋转的真实谷歌地球 → 全息扫描逐渐数字化成 3D 点阵球 → 展开为页面点状地图 → 点亮智利 → 高亮北京 → 光弧相连 → 名片浮现。
 // 只在页面打开的前几秒出现一次；随后把舞台交还给 map.js 的日常动画（呼吸、光脉冲、镜头飞行）。
-// 数据完全来自 land.js 的陆地位图和页面现成的点阵，不引入任何外部资源。
+// 地球球面纹理来自 NASA 公开影像（Blue Marble 昼半球 + 夜间城市灯光），随仓库内置，无运行时外部请求；
+// 纹理未就绪时回退程序化噪点地球。点位完全来自 land.js 与页面现成的点阵。
 (function () {
 'use strict';
 const G = window, ZT = G.ZT, geo = ZT.geo, P = geo.PLACES, D2R = geo.D2R;
@@ -59,15 +60,21 @@ const SUN = geo.sun(Date.now());
 // 为了让开场地球既有立体晨昏光影，又能看清南美到大西洋再到欧亚的壮丽蓝色星球，主光源固定在左上方偏暖阳光角度
 const L_DIR = [-0.42, 0.36, 0.833];
 
+// 程序化云层：大气环流云带（赤道辐合带、中纬气旋涡旋）——叠加在真实卫星影像上，作为影像未就绪时的回退与细节补充
+function sampleCloud(lonDeg, latDeg) {
+  const nx = lonDeg * .045, ny = latDeg * .045;
+  const n1 = fbm(nx, ny), n2 = fbm(nx * 2.4 + 31.4, ny * 2.4 - 18.2);
+  const swirl = Math.sin(lonDeg * D2R * 3.2 + n1 * 4.2) * Math.cos((latDeg - 8) * D2R * 2.6 - n2 * 3.5);
+  return clamp((fbm(lonDeg * .055 + swirl * .8, latDeg * .075 - swirl * .6) - .54) * 2.6, 0, 1) * (.35 + .65 * smooth(78, 52, Math.abs(latDeg)));
+}
+
 // 根据经纬度计算逼真的 Blue Marble 卫星色彩（海洋深浅 + 陆地森林/草原/沙漠/高山/冰原 + 云层）
 function sampleEarthColor(lonDeg, latDeg) {
   const isL = land.isLand(lonDeg, latDeg);
   const absLat = Math.abs(latDeg);
   const nx = lonDeg * .045, ny = latDeg * .045;
   const n1 = fbm(nx, ny), n2 = fbm(nx * 2.4 + 31.4, ny * 2.4 - 18.2);
-  // 大气环流云带（赤道辐合带、中纬气旋涡旋）
-  const swirl = Math.sin(lonDeg * D2R * 3.2 + n1 * 4.2) * Math.cos((latDeg - 8) * D2R * 2.6 - n2 * 3.5);
-  const cloud = clamp((fbm(lonDeg * .055 + swirl * .8, latDeg * .075 - swirl * .6) - .54) * 2.6, 0, 1) * (.35 + .65 * smooth(78, 52, absLat));
+  const cloud = sampleCloud(lonDeg, latDeg);
 
   let r, g, b;
   if (!isL) {
@@ -123,6 +130,7 @@ const gImg = gCtx.createImageData(G_RES, G_RES);
 const gData = gImg.data;
 
 // 预烘焙一张 720×360（0.5° 精度）的等距圆柱地球 RGB+云层+海陆贴图，渲染球体时 O(1) 查表插值，每帧 < 1.5ms
+// 这是程序化回退纹理：真实 NASA 影像加载完成后由 bakeRealTextures 覆盖，并追加夜间城市灯光贴图
 const TEX_W = 720, TEX_H = 360;
 const texR = new Uint8Array(TEX_W * TEX_H);
 const texG = new Uint8Array(TEX_W * TEX_H);
@@ -146,6 +154,44 @@ const texL = new Uint8Array(TEX_W * TEX_H);
     }
   }
 }
+
+// —— 真实 NASA 卫星影像纹理（Blue Marble 昼半球 + 夜间城市灯光，随仓库内置）——
+// 加载成功后逐像素烘焙进同一套 720×360 查表：昼半球 RGB、海陆掩膜与夜间灯光贴图。
+// 陆海掩膜从影像本身按“海洋蓝色占优”提取，与真实海岸线逐像素对齐，保证海面镜面高光不洒到陆地上。
+const texNR = new Uint8Array(TEX_W * TEX_H);
+const texNG = new Uint8Array(TEX_W * TEX_H);
+const texNB = new Uint8Array(TEX_W * TEX_H);
+let REAL_TEX = false;
+const TEX_LOAD_T0 = performance.now();
+function bakeImage(img, outA, outB, outC, wantMask, wantCloud) {
+  const c = G.document.createElement('canvas');
+  c.width = TEX_W; c.height = TEX_H;
+  const cc = c.getContext('2d');
+  cc.drawImage(img, 0, 0, TEX_W, TEX_H);
+  const d = cc.getImageData(0, 0, TEX_W, TEX_H).data;
+  let idx = 0;
+  for (let y = 0; y < TEX_H; y++) {
+    const lat = 90 - (y + .5) * (180 / TEX_H);
+    for (let x = 0; x < TEX_W; x++, idx++) {
+      const r = d[idx * 4], g = d[idx * 4 + 1], b = d[idx * 4 + 2];
+      outA[idx] = r; outB[idx] = g; outC[idx] = b;
+      if (wantMask) texL[idx] = (b > r + 8 && b > g) ? 0 : 1;
+      if (wantCloud) texC[idx] = Math.round(sampleCloud(-180 + (x + .5) * (360 / TEX_W), lat) * 255);
+    }
+  }
+}
+function bakeRealTextures(dayImg, nightImg) {
+  bakeImage(dayImg, texR, texG, texB, true, true);
+  bakeImage(nightImg, texNR, texNG, texNB, false, false);
+  REAL_TEX = true;
+  G.ZT_openingRealTex = true;   // 供无头浏览器验证：真实卫星纹理已烘焙
+}
+const dayImg = new Image(), nightImg = new Image();
+let dayReady = false, nightReady = false;
+dayImg.onload = () => { dayReady = true; if (nightReady) bakeRealTextures(dayImg, nightImg); };
+nightImg.onload = () => { nightReady = true; if (dayReady) bakeRealTextures(dayImg, nightImg); };
+dayImg.src = 'assets/earth-day.jpg';
+nightImg.src = 'assets/earth-night.jpg';
 
 // 预计算球面圆盘内每个像素的法向量 (nx, ny, nz) 与边缘大气散射系数
 const gMask = new Int32Array(G_RES * G_RES);
@@ -210,13 +256,22 @@ function renderGlobeTexture(lonOff, tiltLat, scanProg, globeAlpha) {
 
     const u = (lonRad + Math.PI) / TAU;
     const v = (Math.PI / 2 - latRad) / Math.PI;
-    const tx = clamp((u * TEX_W) | 0, 0, TEX_W - 1);
-    const ty = clamp((v * TEX_H) | 0, 0, TEX_H - 1);
-    const tIdx = ty * TEX_W + tx;
+    // 双线性采样（经度方向无缝环绕，极点钳位），消除真实影像旋转时的锯齿闪烁
+    const fu = u * TEX_W - .5, fv = v * TEX_H - .5;
+    let x0 = Math.floor(fu), y0 = Math.floor(fv);
+    const wu = fu - x0, wv = fv - y0;
+    y0 = clamp(y0, 0, TEX_H - 1);
+    const y1 = clamp(y0 + 1, 0, TEX_H - 1);
+    x0 = ((x0 % TEX_W) + TEX_W) % TEX_W;
+    const x1 = (x0 + 1) % TEX_W;
+    const i00 = y0 * TEX_W + x0, i10 = y0 * TEX_W + x1, i01 = y1 * TEX_W + x0, i11 = y1 * TEX_W + x1;
+    const bl = (a0, a1, b0, b1) => (a0 + (a1 - a0) * wu) + ((b0 + (b1 - b0) * wu) - (a0 + (a1 - a0) * wu)) * wv;
 
-    let r = texR[tIdx], g = texG[tIdx], b = texB[tIdx];
-    const cloud = texC[tIdx] * (1 / 255);
-    const isL = texL[tIdx];
+    let r = bl(texR[i00], texR[i10], texR[i01], texR[i11]);
+    let g = bl(texG[i00], texG[i10], texG[i01], texG[i11]);
+    let b = bl(texB[i00], texB[i10], texB[i01], texB[i11]);
+    const cloud = bl(texC[i00], texC[i10], texC[i01], texC[i11]) * (1 / 255);
+    const isL = bl(texL[i00], texL[i10], texL[i01], texL[i11]) > .5;
 
     // 光照计算：漫反射 + 晨昏线柔和暖光 + 背面深空夜色
     const ndotl = nx * lx + ny * ly + nz * lz;
@@ -241,10 +296,23 @@ function renderGlobeTexture(lonOff, tiltLat, scanProg, globeAlpha) {
     // 叠加白色大气云层
     if (cloud > .01) {
       const cLight = .22 + .82 * diff;
-      const cw = cloud * .78;
+      const cw = cloud * .55;
       r = lerp(r, 242 * cLight, cw);
       g = lerp(g, 248 * cLight, cw);
       b = lerp(b, 255 * cLight, cw);
+    }
+
+    // 夜半球：叠入真实夜间城市灯光影像（NASA Earth at Night），Google Earth 式的昼夜过渡
+    if (REAL_TEX) {
+      const nightMix = smooth(.05, -.42, ndotl);
+      if (nightMix > 0) {
+        const nr = bl(texNR[i00], texNR[i10], texNR[i01], texNR[i11]) * 1.3;
+        const ng = bl(texNG[i00], texNG[i10], texNG[i01], texNG[i11]) * 1.3;
+        const nb = bl(texNB[i00], texNB[i10], texNB[i01], texNB[i11]) * 1.4;
+        r = lerp(r, nr, nightMix);
+        g = lerp(g, ng, nightMix);
+        b = lerp(b, nb, nightMix);
+      }
     }
 
     // 球体边缘瑞利散射蔚蓝大气辉光（Atmosphere Rim Glow）
@@ -507,10 +575,12 @@ function frame(now) {
   raf = requestAnimationFrame(frame);
 }
 
-// 等 map 首帧把点阵铺好，再开演
+// 等 map 首帧把点阵铺好、真实卫星纹理就绪（最长等 1.2s，超时按程序化纹理开演），再开演
 (function tryDots() {
   const d = map.dots();
-  if (d && d.n > 2) { DOTS = buildDots(d); resize(); site.chile = sitePos('chile'); site.beijing = sitePos('beijing'); raf = requestAnimationFrame(frame); }
+  const ready = d && d.n > 2;
+  const texOk = REAL_TEX || performance.now() - TEX_LOAD_T0 > 1200;
+  if (ready && texOk) { DOTS = buildDots(d); resize(); site.chile = sitePos('chile'); site.beijing = sitePos('beijing'); raf = requestAnimationFrame(frame); }
   else raf = requestAnimationFrame(tryDots);
 })();
 })();
