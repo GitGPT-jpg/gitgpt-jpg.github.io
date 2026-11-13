@@ -12,7 +12,6 @@
   }
 
   const poster = opening.querySelector('.orbit-poster');
-  const film = opening.querySelector('.orbit-film');
   const skip = document.getElementById('opening-skip');
   const timers = [];
   const events = new AbortController();
@@ -24,7 +23,6 @@
     finished = true;
     timers.forEach(clearTimeout);
     events.abort();
-    film.pause();
     opening.remove();
     if (immediate) map.finishOpening();
   }
@@ -32,18 +30,16 @@
   function start() {
     if (finished) return;
     clearTimeout(timers[0]);
-    document.documentElement.classList.add('is-opening');
     opening.classList.add('rolling');
-    film.src = 'assets/santiago-orbit.mp4';
-    film.play().catch(() => {}); // The poster shares the camera move when autoplay is unavailable.
     timers.push(setTimeout(() => {
       map.begin();
       opening.classList.add('fade');
-    }, 2350));
-    timers.push(setTimeout(() => release(false), 3050));
+    }, 2950));
+    timers.push(setTimeout(() => release(false), 3650));
   }
 
   window.ZT_openingReady = true;
+  document.documentElement.classList.add('is-opening');
   skip.addEventListener('click', () => release(true), listen);
   window.addEventListener('keydown', e => {
     if (e.key === 'Escape') release(true);
@@ -55,10 +51,10 @@
   window.addEventListener('hashchange', () => release(true), listen);
   motion.addEventListener('change', e => { if (e.matches) release(true); }, listen);
   document.addEventListener('visibilitychange', () => { if (document.hidden) release(true); }, listen);
-  film.addEventListener('playing', () => film.classList.add('playing'), listen);
-  film.addEventListener('error', () => film.classList.remove('playing'), listen);
-  poster.addEventListener('load', start, listen);
+  poster.addEventListener('load', start, {once: true, signal: events.signal});
   poster.addEventListener('error', () => release(true), listen);
-  timers.push(setTimeout(() => release(true), 1000));
-  poster.src = 'assets/santiago-orbit.webp';
+  timers.push(setTimeout(() => release(true), 4500));
+  poster.sizes = '(max-aspect-ratio: 1/1) 166vw, max(101vw, 152vh)';
+  poster.srcset = 'assets/orbit-1280.webp 1280w, assets/orbit-2160.webp 2160w, assets/orbit-3840.webp 3840w';
+  poster.src = 'assets/orbit-1280.webp';
 })();
