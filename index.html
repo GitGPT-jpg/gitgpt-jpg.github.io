@@ -151,15 +151,13 @@
 
     <section class="rig" id="evolve" aria-labelledby="evolve-h">
       <header class="rig-h">
-        <p class="rig-q">北辰 · 自进化评测</p>
-        <h3 id="evolve-h">我为什么把一轮评测判作无效？</h3>
-        <p>复查样本时，我发现部分任务描述已经透露了故障类别。北辰只要读到题面，就可能猜中答案。那一轮的分数无法说明诊断策略有没有改进，我把结果判作无效。</p>
-        <p>我把类别标签留在评分侧，再按案例族切分数据集。现在，每份 Skill 补丁先经过修改范围、语法和 diff 审查，再与旧版在同一批冻结取证包上回放，比较故障命中、误报和证据缺失时给出“未知”的表现。开发集主指标严格优于基线后，候选才进入人工确认。</p>
-        <p class="rig-note">在下面勾选“题面里带着故障类别”，看看同一个候选补丁的评测结果会发生什么变化。</p>
+        <p class="rig-q">智能体从一次复盘中学到的经验，怎样证明对下一次任务也有用？</p>
+        <h3 id="evolve-h">自进化：一次技能修改，是一个待检验的候选假设</h3>
+        <p class="rig-note">用户纠错、真实根因和诊断复盘可以进入优化队列，进化器据此提出 Skill 补丁。候选先经过修改范围、语法和 diff 审查，再与旧版在同一批冻结取证包上回放，按参考答案比较故障命中、误报，以及证据缺失时能否正确给出“未知”。候选的开发集主指标必须严格优于基线，并经人工确认后才能采纳。</p>
       </header>
       <div class="rig-app" id="evolve-app"></div>
     </section>
-
+    <p>做离线评测时，我曾发现一批样本的任务描述泄漏了故障类别，于是将那轮对比判为无效，把类别标签留在评分侧，再按案例族切分数据集。这直接影响我能否回答一个关键问题：分数提高，究竟来自诊断策略改进，还是因为题面已经暗示了答案？</p>
 
     <section class="rig" id="workbench" aria-labelledby="workbench-h">
       <header class="rig-h">
@@ -183,9 +181,16 @@
   <p class="meta"><span id="beam-meta">圣地亚哥 → 北京 · 大圆航线</span><span>地图的明暗是此刻的昼夜</span></p>
 </footer>
 
+<!-- 开场动画：旋转的地球 → 虚拟化成点阵地图 → 点亮智利 → 光束连到北京 → 名片浮现 -->
+<div class="opening" id="opening" aria-hidden="true">
+  <canvas id="opening-cv"></canvas>
+  <button type="button" class="opening-skip" id="opening-skip">跳过动画 <span aria-hidden="true">→</span></button>
+</div>
+
 <script src="assets/core.js"></script>
 <script src="assets/land.js"></script>
 <script src="assets/map.js"></script>
 <script src="assets/app.js"></script>
+<script src="assets/opening.js"></script>
 </body>
 </html>

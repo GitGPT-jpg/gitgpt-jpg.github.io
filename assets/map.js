@@ -39,7 +39,8 @@ function create(o) {
   let dirty = true, hover = null, raf = 0, born = 0, minute = 0;
   let beam = null, lit = [], chile = [], pulses = [], bursts = [], nextPulse = 0, reveal = 0;
   let hold = 0, spots = {chile: CHIPS.chile, beijing: CHIPS.beijing};
-  let dots = {n: 0, x: new Float32Array(4096), y: new Float32Array(4096), r: new Float32Array(4096)};
+  let dots = {n: 0, x: new Float32Array(4096), y: new Float32Array(4096), r: new Float32Array(4096), wx: new Float32Array(4096), wy: new Float32Array(4096)};
+  let opening = true, chileLit = 0, litT0 = 0, revealed = false;   // 开场：opening.js 调用 begin() 之前，智利保持蓝色、光束憋着不发
 
   const sx = x => (x - cam.x) * cam.k + cam.ax, sy = y => (cam.y - y) * cam.k + cam.ay;
   const ux = px => (px - cam.ax) / cam.k + cam.x, uy = py => cam.y - (py - cam.ay) / cam.k;
@@ -87,9 +88,9 @@ function create(o) {
     }
   }
 
-  function push(px, py, r) {
-    if (dots.n === dots.x.length) for (const k of ['x', 'y', 'r']) { const a = new Float32Array(dots.n * 2); a.set(dots[k]); dots[k] = a; }
-    dots.x[dots.n] = px; dots.y[dots.n] = py; dots.r[dots.n++] = r;
+  function push(px, py, r, wx, wy) {
+    if (dots.n === dots.x.length) for (const k of ['x', 'y', 'r', 'wx', 'wy']) { const a = new Float32Array(dots.n * 2); a.set(dots[k]); dots[k] = a; }
+    dots.x[dots.n] = px; dots.y[dots.n] = py; dots.r[dots.n] = r; dots.wx[dots.n] = wx; dots.wy[dots.n] = wy; dots.n++;
   }
   // 扫一级三角点阵。onlyNew：只画这一级比上一级多出来的点（它们随着镜头拉近渐渐显现）。
   function scan(paths, sp, onlyNew, a, sunNow) {
@@ -109,9 +110,9 @@ function create(o) {
         const r = r0 * (.62 + .38 * cov) * (onlyNew ? .55 + .45 * a : 1) * (isCl ? 1.14 : 1);
         const day = smooth(-.16, .09, sinL + cosL * Math.cos((x - sunNow.lon) * D2R));   // 太阳高度角的正弦：晨昏线附近平滑过渡
         const alpha = (isCl ? 1 : lerp(NIGHT, DAY, day) / DAY) * (.5 + .5 * cov) * a;
-        const p = paths[(isCl ? LEVELS : 0) + clamp(Math.round(alpha * (LEVELS - 1)), 0, LEVELS - 1)];
+        const p = paths[((isCl && chileLit > .02) ? LEVELS : 0) + clamp(Math.round(alpha * (LEVELS - 1)), 0, LEVELS - 1)];
         p.moveTo(px + r, py); p.arc(px, py, r, 0, TAU);
-        push(px, py, r);
+        push(px, py, r, x, y);
         if (isCl) chile.push(px, py, r);
       }
     }
@@ -129,7 +130,7 @@ function create(o) {
     for (let i = 0; i < LEVELS; i++) {
       const a = i / (LEVELS - 1);
       c.fillStyle = 'rgba(160,186,226,' + (a * DAY).toFixed(3) + ')'; c.fill(paths[i]);
-      c.fillStyle = 'rgba(255,188,92,' + (.25 + .75 * a).toFixed(3) + ')'; c.fill(paths[LEVELS + i]);
+      c.fillStyle = 'rgba(255,188,92,' + ((.25 + .75 * a) * chileLit).toFixed(3) + ')'; c.fill(paths[LEVELS + i]);
     }
   }
 
@@ -232,7 +233,7 @@ function create(o) {
 
     c.globalCompositeOperation = 'lighter';
     // 智利在呼吸；指上去更亮
-    const breath = (still() ? .12 : .1 + .08 * Math.sin(t * 1.8)) + (hover === 'chile' ? .24 : view === 'chile' ? .08 : 0);
+    const breath = ((still() ? .12 : .1 + .08 * Math.sin(t * 1.8)) + (hover === 'chile' ? .24 : view === 'chile' ? .08 : 0)) * chileLit;
     c.fillStyle = 'rgba(255,179,71,' + breath.toFixed(3) + ')';
     c.beginPath();
     for (let i = 0; i < chile.length; i += 3) { c.moveTo(chile[i] + chile[i + 2] * 1.8, chile[i + 1]); c.arc(chile[i], chile[i + 1], chile[i + 2] * 1.8, 0, TAU); }
@@ -252,7 +253,9 @@ function create(o) {
       for (const p of pulses) { const q = (now - p.t0) / p.dur; if (q > 0 && q < 1) drawPulse(c, (.75 * q + .25 * smooth(0, 1, q)) * beam.len, 1); }
       if (fly && fly.ride > 0) drawPulse(c, sOf(fly.e), 1);
       for (const u of bursts) {                             // 光到达时，北京亮一下
-        const q = (now - u.t0) / 1100, s = SITES[u.id];
+        const q = (now - u.t0) / 1100;
+        if (q <= 0 || q >= 1) continue;
+        const s = SITES[u.id];
         c.strokeStyle = 'rgba(' + s.rgb + ',' + ((1 - q) * (1 - q) * .9).toFixed(3) + ')'; c.lineWidth = 2 - q;
         c.beginPath(); c.arc(sx(s.x), sy(s.y), 8 + 52 * (1 - (1 - q) * (1 - q)), 0, TAU); c.stroke();
       }
@@ -320,20 +323,26 @@ function create(o) {
   }
 
   /* ---------- 每一帧 ---------- */
+  function fireReveal() { if (revealed) return; revealed = true; if (o.onReveal) o.onReveal(); }
   function frame(now) {
     raf = 0;
-    if (!born) { born = now; pulses.push({t0: now + 450, dur: 2700, first: true}); nextPulse = now + 450 + 5600; }
+    if (!born) born = now;
+    if (opening) {                                          // 开场遮罩还盖着：光束、脉冲都先憋着；万一开场脚本坏了，4 秒后自行呈现
+      if (!window.ZT_openingReady && now - born > 4000) { opening = false; reveal = 1; chileLit = 1; litT0 = 0; dirty = true; place(); fireReveal(); }
+    } else if (litT0) {                                     // 开场：智利从普通蓝色缓缓点亮成琥珀色
+      if (now >= litT0) { chileLit = Math.min(1, (now - litT0) / 650); if (chileLit >= 1) litT0 = 0; dirty = true; }
+    }
     if (hold) { nextPulse = now + hold; hold = 0; }        // 推迟下一束光：刚飞完一程，或者页面刚切回来
     if (fly) stepFly(now);
-    if (still()) { reveal = 1; pulses = []; bursts = []; }
+    if (still()) { reveal = 1; chileLit = 1; pulses = []; bursts = []; fireReveal(); }
     const m = Math.floor(Date.now() / 60000);
     if (m !== minute) { minute = m; dirty = true; }        // 晨昏线每分钟挪一点
     if (dirty) { project(); drawBase(); if (!fly) nearBeam(); dirty = false; place(); }
-    if (!still()) {
+    if (!still() && !opening) {
       if (now >= nextPulse) { pulses.push({t0: now, dur: 2700}); nextPulse = now + 5600; }
       pulses = pulses.filter(p => {
         const q = (now - p.t0) / p.dur;
-        if (p.first && q > 0) { const was = reveal; reveal = Math.max(reveal, Math.min(1, .75 * q + .25 * smooth(0, 1, q))); if (was < 1 && reveal >= 1) place(); }
+        if (p.first && q > 0) { const was = reveal; reveal = Math.max(reveal, Math.min(1, .75 * q + .25 * smooth(0, 1, q))); if (was < 1 && reveal >= 1) { place(); fireReveal(); } }
         if (q >= 1) bursts.push({id: 'beijing', t0: now});
         return q < 1;
       });
@@ -374,7 +383,25 @@ function create(o) {
   return {
     flyTo, setHover, kick,
     resize() { measure(); kick(); },
-    setInset(v) { inset = {right: v.right || 0, bottom: v.bottom || 0}; if (!fly) { cam = target(view); dirty = true; } else fly.to = target(view); kick(); }
+    setInset(v) { inset = {right: v.right || 0, bottom: v.bottom || 0}; if (!fly) { cam = target(view); dirty = true; } else fly.to = target(view); kick(); },
+    // —— 开场动画接口（由 opening.js 调用）——
+    begin() {                                            // 地球动画结束：点亮智利 → 900ms 后光束出发
+      if (!opening && !litT0) return;
+      opening = false;
+      if (still()) { finishOpening(); return; }
+      const t = performance.now();
+      reveal = 0; chileLit = 0; litT0 = t + 300;         // 先保持普通蓝色，300ms 后开始点亮
+      pulses.push({t0: t + 900, dur: 2400, first: true});
+      nextPulse = t + 900 + 5600;
+      bursts.push({id: 'chile', t0: t + 650});
+      kick();
+    },
+    finishOpening() {                                    // 跳过动画 / 减少动态效果：直接呈现最终画面
+      opening = false; litT0 = 0; chileLit = 1; reveal = 1; pulses = []; bursts = [];
+      dirty = true; place(); kick(); fireReveal();
+    },
+    w2s(lon, lat) { return [sx(lon), sy(geo.millerY(lat))]; },
+    dots() { return {n: dots.n, x: dots.x.slice(0, dots.n), y: dots.y.slice(0, dots.n), r: dots.r.slice(0, dots.n), wx: dots.wx.slice(0, dots.n), wy: dots.wy.slice(0, dots.n)}; }
   };
 }
 

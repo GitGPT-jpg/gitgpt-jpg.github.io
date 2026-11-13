@@ -257,12 +257,6 @@ html:not(.js) .site-x{display:none}
 .packet span{font:500 11px/1 var(--mono);color:var(--ink);border:1px dashed var(--line);border-radius:999px;padding:5px 9px}
 
 /* ========== 北京：证据门禁 ========== */
-.node-choice{margin-bottom:20px;padding-bottom:18px;border-bottom:1px solid var(--line)}
-.node-choice label{display:block;color:var(--ink2);font-size:.86rem}
-.node-scenario{max-width:100%;margin:4px 0;padding:6px;background:#111924;color:var(--ink);border:1px solid var(--line);border-radius:6px;font:inherit}
-.node-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-.node-choice .node-result{color:var(--ink);margin:12px 0 0}
-.node-result:empty{margin:0}
 .gt-top{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px 18px;align-items:start;margin-bottom:14px}
 .meter{display:grid;justify-items:center;gap:8px;min-width:132px;padding:12px 14px;border:1px solid var(--line);border-radius:8px;background:rgba(0,0,0,.25)}
 .meter small{font:500 10px/1 var(--mono);letter-spacing:.14em;color:var(--ink3)}
@@ -421,6 +415,22 @@ html:not(.js) .site-body{overflow:visible}
 html:not(.js) .foot{max-width:760px;margin:0 auto}
 html:not(.js) .clocks,html:not(.js) .site-time,html:not(.js) .back{display:none}
 html:not(.js) .gh{margin-left:auto}
+
+/* ========== 开场动画：旋转地球 → 点阵化 → 点亮智利 → 光束相连 → 名片浮现 ========== */
+.opening{display:none}
+html.is-opening .opening{position:fixed;inset:0;z-index:60;display:block;background:#04070d;overflow:hidden}
+.opening canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.opening-skip{position:absolute;right:18px;bottom:16px;z-index:2;font:500 12px/1 var(--mono);letter-spacing:.14em;color:var(--ink2);background:rgba(8,13,24,.55);border:1px solid var(--line);border-radius:999px;padding:9px 14px;cursor:pointer;transition:color .2s,border-color .2s,background .2s}
+.opening-skip:hover{color:var(--ink);border-color:rgba(150,180,225,.5);background:rgba(10,16,30,.7)}
+.opening.fade{opacity:0;transition:opacity .65s ease;pointer-events:none}
+
+/* 开场遮罩盖住页面时：顶栏、页脚先不露面；名片卡等光束到达北京再缓缓浮现 */
+html.is-opening .top,html.is-opening .foot{opacity:0}
+html.is-opening .intro{opacity:0;transform:translateY(14px);visibility:hidden}
+html.is-opening .top,html.is-opening .foot,html.ready .top,html.ready .foot{transition:opacity .7s ease}
+html.is-opening .intro,html.ready .intro{transition:opacity .85s ease .15s,transform .85s ease .15s,visibility 0s .15s}
+html.ready .top,html.ready .foot{opacity:1}
+html.ready .intro{opacity:1;transform:none;visibility:visible}
 
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important}
