@@ -8,6 +8,7 @@
 
 纯 HTML + CSS + JavaScript，无框架、无构建步骤、无外部依赖：
 
+- 开场从圣地亚哥上空拉远，使用 NASA [Blue Marble 陆地、海洋、海冰与云层合成影像](https://visibleearth.nasa.gov/images/57735/the-blue-marble-land-surface-ocean-color-sea-ice-and-clouds) 和仓库中的夜光纹理预渲染。静音短片与首帧随站点分发，支持跳过与减少动态效果。
 - Canvas 手绘点状世界地图（Miller 投影 + 点阵采样）
 - 光弧航线：三层辉光 + 流光动画，按两地时区实时显示「光行时间」
 - 响应式：宽屏展示地图全景，窄屏自动切换为卡片模式

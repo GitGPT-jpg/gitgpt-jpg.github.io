@@ -181,9 +181,20 @@
   <p class="meta"><span id="beam-meta">圣地亚哥 → 北京 · 大圆航线</span><span>地图的明暗是此刻的昼夜</span></p>
 </footer>
 
-<!-- 开场动画：旋转的地球 → 虚拟化成点阵地图 → 点亮智利 → 光束连到北京 → 名片浮现 -->
-<div class="opening" id="opening" aria-hidden="true">
-  <canvas id="opening-cv"></canvas>
+<!-- 从南美上空拉远，再把镜头交给现有的跨洋航线。 -->
+<div class="opening" id="opening">
+  <div class="orbit-shot" aria-hidden="true">
+    <div class="orbit-disc">
+      <img class="orbit-poster" alt="" width="848" height="848">
+      <video class="orbit-film" muted playsinline preload="none"></video>
+    </div>
+    <div class="orbit-caption" lang="zh-CN">
+      <span>33°27′ S &nbsp; 70°40′ W</span>
+      <strong>圣地亚哥</strong>
+      <small lang="es">Santiago de Chile</small>
+    </div>
+    <small class="orbit-credit">NASA / Blue Marble</small>
+  </div>
   <button type="button" class="opening-skip" id="opening-skip">跳过动画 <span aria-hidden="true">→</span></button>
 </div>
 

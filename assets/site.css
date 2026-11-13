@@ -416,10 +416,28 @@ html:not(.js) .foot{max-width:760px;margin:0 auto}
 html:not(.js) .clocks,html:not(.js) .site-time,html:not(.js) .back{display:none}
 html:not(.js) .gh{margin-left:auto}
 
-/* ========== 开场动画：旋转地球 → 点阵化 → 点亮智利 → 光束相连 → 名片浮现 ========== */
+/* 南美轨道镜头。地球拉远后，遮罩在圣地亚哥光束发出前淡出。 */
 .opening{display:none}
-html.is-opening .opening{position:fixed;inset:0;z-index:60;display:block;background:#04070d;overflow:hidden}
-.opening canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+html.is-opening .opening{position:fixed;inset:0;z-index:60;display:block;overflow:hidden;background:#04070d}
+.orbit-shot{position:absolute;inset:0;overflow:hidden;background:radial-gradient(ellipse at 70% 45%,#101a29,#04070d 64%)}
+.orbit-disc{position:absolute;left:65%;top:49%;width:min(75vw,89vh);aspect-ratio:1;transform:translate(-50%,-50%);isolation:isolate;mask-image:radial-gradient(circle closest-side,#000 96%,transparent 100%)}
+.orbit-poster,.orbit-film{display:block;position:absolute;width:100%;height:100%;inset:0}
+.orbit-film{opacity:0}
+.orbit-film.playing{opacity:1}
+.orbit-caption{position:absolute;left:9%;top:51%;transform:translateY(-50%);color:#eef3f9;text-shadow:0 2px 16px #04070d}
+.orbit-caption span,.orbit-credit{font:500 11px/1.6 var(--mono);letter-spacing:.12em}
+.orbit-caption span{color:#e8b981}
+.orbit-caption strong{display:block;margin:.22em 0 .14em;font-size:clamp(36px,5vw,80px);font-weight:500;letter-spacing:.08em;line-height:1.15}
+.orbit-caption small{color:#bfc9d6;font:400 clamp(17px,2vw,27px)/1.3 Georgia,serif;font-style:italic}
+.orbit-credit{position:absolute;left:max(20px,env(safe-area-inset-left));bottom:max(18px,env(safe-area-inset-bottom));color:#9caebf;font-size:10px}
+.opening.rolling .orbit-disc{animation:orbit-pullback 2.7s cubic-bezier(.2,.6,.3,1) both}
+.opening.rolling .orbit-caption{animation:orbit-caption 2.7s ease both}
+@keyframes orbit-pullback{from{transform:translate(-48%,-48%) scale(1.26)}to{transform:translate(-50%,-50%) scale(.93)}}
+@keyframes orbit-caption{0%{opacity:0}18%,77%{opacity:1}100%{opacity:0}}
+@media(max-aspect-ratio:1/1){
+  .orbit-disc{left:52%;top:39%;width:min(105vw,65vh)}
+  .orbit-caption{left:9%;top:76%}
+}
 .opening-skip{position:absolute;right:18px;bottom:16px;z-index:2;font:500 12px/1 var(--mono);letter-spacing:.14em;color:var(--ink2);background:rgba(8,13,24,.55);border:1px solid var(--line);border-radius:999px;padding:9px 14px;cursor:pointer;transition:color .2s,border-color .2s,background .2s}
 .opening-skip:hover{color:var(--ink);border-color:rgba(150,180,225,.5);background:rgba(10,16,30,.7)}
 .opening.fade{opacity:0;transition:opacity .65s ease;pointer-events:none}
