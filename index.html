@@ -2,720 +2,189 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>张腾 · 从光链路到推理时间线</title>
-<meta name="description" content="张腾的个人主页。以前在智利排查光链路，现在在北京研究一个 token 要等多久。">
-<meta name="theme-color" content="#0a0b0d">
-<meta property="og:title" content="张腾 · 从光链路到推理时间线">
-<meta property="og:description" content="以前在智利排查光链路，现在在北京研究一个 token 要等多久。">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230a0b0d'/%3E%3Cpath d='M3 23h9c5 0 4-14 9-14h8' fill='none' stroke='%23ffb23e' stroke-width='2.5'/%3E%3C/svg%3E">
-<style>
-:root{
-  --ink:#0a0b0d;--panel:rgba(14,15,18,.86);--w:#f3ead9;--w2:#aaa293;--w3:#6c665b;--hair:rgba(243,234,217,.15);
-  --amb:#ffb23e;--amb-s:rgba(255,178,62,.14);
-  --disp:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC","Source Han Sans SC","WenQuanYi Zen Hei",sans-serif;
-  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
-  --pad:clamp(20px,4.4vw,64px);--gap:clamp(22px,4vw,64px);
-}
-*,*::before,*::after{box-sizing:border-box}
-html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;background:var(--ink)}
-body{margin:0;color:var(--w);font:400 17px/1.8 var(--disp);-webkit-font-smoothing:antialiased;line-break:strict;overflow-wrap:anywhere}
-a{color:inherit}
-p{margin:0 0 1em}
-:focus-visible{outline:2px solid var(--amb);outline-offset:4px}
-#fx,#fx2{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
-#fx{background:var(--ink)}
-.page{position:relative;z-index:1}
-.wrap{max-width:1180px;margin:0 auto;padding-inline:var(--pad)}
-.mono,.k{font:500 .74rem/1.6 var(--mono);letter-spacing:.16em;color:var(--w2)}
-.k{color:var(--amb);margin:0 0 1.1em}
-.fine{font-size:.84rem;line-height:1.7;color:var(--w2);margin:0}
-.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-
-/* 首屏：海报 */
-.hero{min-height:100vh;min-height:100svh;display:grid;grid-template-rows:auto 1fr auto;padding:clamp(18px,2.6vw,32px) var(--pad) clamp(22px,3vw,36px)}
-.hero-top{display:flex;justify-content:space-between;align-items:center;gap:16px}
-.hero-top nav{display:flex;gap:4px;margin-right:-12px}
-.hero-top nav a{font-size:.9rem;text-decoration:none;color:var(--w2);padding:12px;min-height:44px}
-.hero-top nav a:hover{color:var(--amb)}
-.hero-top nav a.beam{color:var(--amb)}
-.hero-main{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:var(--gap)}
-.name{font:900 clamp(8rem,23.5vw,22rem)/.92 var(--disp);letter-spacing:-.045em;margin:0 0 0 -.05em;white-space:nowrap}
-.say{justify-self:end;align-self:end;max-width:19.5em;margin:0 0 9vh;padding-left:1.1em;border-left:1px solid var(--amb);font:600 clamp(1.2rem,1.95vw,1.7rem)/1.65 var(--disp)}
-.say>span{display:inline-block}
-.tk{font-family:var(--mono);font-weight:500;color:var(--amb);letter-spacing:-.02em;margin-right:.3em}
-.down{justify-self:start;font:500 .78rem/1 var(--mono);letter-spacing:.1em;color:var(--w2);text-decoration:none;padding:14px 0;min-height:44px}
-.down:hover{color:var(--amb)}
-.down span{display:inline-block;animation:nudge 1.8s ease-in-out infinite}
-@keyframes nudge{50%{transform:translateY(5px)}}
-
-/* 自我介绍 */
-.about{padding:clamp(72px,12vw,170px) 0}
-.lead{font:800 clamp(1.5rem,3.5vw,2.9rem)/1.42 var(--disp);letter-spacing:-.01em;max-width:21em;margin:0 0 clamp(40px,6vw,84px);text-wrap:balance}
-.lead em{font-style:normal;color:var(--amb)}
-.cols{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:var(--gap);align-items:start}
-.bio{color:var(--w2);font-size:1.02rem;max-width:27em}
-.bio b{color:var(--w);font-weight:600}
-.q{display:grid;grid-template-columns:3.2rem minmax(0,1fr);gap:8px;align-items:baseline;padding:18px 0;border-top:1px solid var(--hair);text-decoration:none;font:700 clamp(1.15rem,2.1vw,1.6rem)/1.5 var(--disp);transition:color .15s,padding .2s}
-.q:last-child{border-bottom:1px solid var(--hair)}
-.q i{font:500 .78rem var(--mono);font-style:normal;color:var(--amb);letter-spacing:.12em}
-.q:hover{color:var(--amb);padding-left:10px}
-
-/* 章节 */
-.sec{padding:clamp(56px,9vw,130px) 0}
-h2{font:900 clamp(2rem,5.4vw,4.2rem)/1.16 var(--disp);letter-spacing:-.025em;margin:0 0 .5em;text-wrap:balance}
-h3{font:800 clamp(1.4rem,2.8vw,2.1rem)/1.3 var(--disp);letter-spacing:-.01em;margin:0 0 .6em;text-wrap:balance}
-.dek{font-size:clamp(1.02rem,1.5vw,1.18rem);color:var(--w2);max-width:33em;margin:0 0 clamp(28px,4vw,52px)}
-.panel{background:var(--panel);border:1px solid var(--hair);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
-
-/* 按钮 */
-.btn{appearance:none;display:inline-flex;align-items:center;justify-content:center;gap:.5em;min-height:50px;padding:.5em 1.25em;border:1px solid var(--w);border-radius:0;background:none;color:var(--w);font:700 1rem/1.2 var(--disp);cursor:pointer;transition:background .15s,color .15s,box-shadow .2s,transform .1s}
-.btn:hover{background:var(--w);color:var(--ink)}
-.btn:active{transform:translateY(1px)}
-.btn-a{border-color:var(--amb);background:var(--amb);color:var(--ink);box-shadow:0 0 34px rgba(255,178,62,.3)}
-.btn-a:hover{background:#ffc566;border-color:#ffc566;color:var(--ink);box-shadow:0 0 48px rgba(255,178,62,.5)}
-.btn[disabled]{opacity:.34;cursor:not-allowed;box-shadow:none;background:none;color:var(--w);border-color:var(--w3)}
-.btn-s{min-height:44px;font-size:.9rem;padding:.4em .9em}
-
-/* 时间线实验台 */
-.lab{padding:clamp(18px,3vw,36px)}
-.req-bar{display:grid;grid-template-columns:4fr 1fr;height:8px;gap:2px;margin-bottom:10px}
-.req-bar i{background:var(--w3);position:relative;overflow:hidden}
-.req-bar i:last-child{background:var(--w)}
-.req-bar u{position:absolute;inset:0 auto 0 0;width:0;background:repeating-linear-gradient(135deg,var(--amb) 0 3px,transparent 3px 6px)}
-.req-l{display:flex;flex-wrap:wrap;gap:4px 28px;font-size:.86rem;color:var(--w2);margin-bottom:clamp(22px,3vw,36px)}
-.req-l b{color:var(--w);font-weight:600;margin-right:.5em}
-.plot{position:relative;touch-action:pan-y}
-.axis{position:relative;height:30px;border-bottom:1px solid var(--hair)}
-.axis::before{content:"";position:absolute;left:0;right:0;bottom:0;height:5px;background:repeating-linear-gradient(90deg,var(--hair) 0 1px,transparent 1px calc(100%/60))}
-.axis span{position:absolute;bottom:9px;transform:translateX(-50%);font:500 .64rem/1 var(--mono);color:var(--w3);white-space:nowrap}
-.axis span::after{content:"";position:absolute;left:50%;bottom:-9px;width:1px;height:8px;background:var(--w3)}
-.axis span:first-child{transform:none}
-.axis span:first-child::after{left:0}
-.axis span:last-child{transform:translateX(-100%)}
-.axis span:last-child::after{left:100%}
-.track{padding:20px 0 16px;border-bottom:1px dashed var(--hair)}
-.th{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 16px;margin-bottom:26px}
-.th b{font:700 1rem/1.4 var(--disp)}
-.th span{font:500 .72rem/1.9 var(--mono);color:var(--w2);letter-spacing:.04em}
-.lane{position:relative;height:30px;--t:0%}
-.lane::before{content:"";position:absolute;left:0;right:0;top:50%;border-top:1px dotted var(--w3);opacity:.5}
-.rev{position:absolute;inset:0;clip-path:inset(-40px calc(100% - var(--t)) -40px 0)}
-.seg{position:absolute;top:0;bottom:0}
-.seg.q{top:50%;bottom:auto;height:0;border-top:1px dashed var(--w)}
-.seg.q::before,.seg.q::after{content:"";position:absolute;top:-6px;width:1px;height:11px;background:var(--w)}
-.seg.q::before{left:0}.seg.q::after{right:0}
-.seg.pf{background:var(--w)}
-.seg.prefix{background:var(--w2)}
-.seg.pf+.seg.pf{box-shadow:-1px 0 0 var(--ink)}
-.seg.reuse{background:repeating-linear-gradient(135deg,var(--amb) 0 4px,rgba(10,11,13,.92) 4px 9px);outline:1px solid var(--amb);z-index:1}
-.seg.hit{top:-5px;bottom:-5px;width:0;border-left:1px dashed var(--amb)}
-.tick{position:absolute;top:22%;bottom:22%;width:1px;background:var(--w)}
-.ttft{position:absolute;top:-9px;bottom:-9px;width:0;border-left:2px solid var(--amb);z-index:2}
-.ttft::before{content:"";position:absolute;left:-6px;top:50%;width:10px;height:10px;margin-top:-5px;background:var(--amb);transform:rotate(45deg);box-shadow:0 0 18px var(--amb)}
-.ttft b{position:absolute;left:10px;top:-17px;font:600 .68rem/1 var(--mono);color:var(--amb);white-space:nowrap}
-.head{position:absolute;left:var(--t);top:50%;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;border-radius:50%;background:#ffe2ad;box-shadow:0 0 0 3px rgba(255,178,62,.3),0 0 26px 7px rgba(255,178,62,.6);opacity:0;z-index:3}
-.playing .head{opacity:1}
-.facts{font:500 .76rem/1.7 var(--mono);color:var(--w2);margin:14px 0 0;min-height:1.7em}
-.facts b{color:var(--amb);font-weight:600}
-.out{font:600 clamp(1.02rem,1.7vw,1.22rem)/1.7 var(--disp);margin:6px 0 0;min-height:1.7em}
-.out i{font-style:normal;opacity:0;transition:opacity .16s}
-.out i.on{opacity:1}
-.out i.first.on{color:var(--amb)}
-.out .wait{color:var(--w3);font-weight:400;font-size:.9rem}
-.gapline{position:relative;height:0}
-.gapline div{position:absolute;top:-1px;height:0;border-top:1px solid var(--amb)}
-.gapline div::before,.gapline div::after{content:"";position:absolute;top:-7px;width:1px;height:13px;background:var(--amb)}
-.gapline div::before{left:0}.gapline div::after{right:0}
-.gapline b{position:absolute;left:50%;top:-12px;transform:translateX(-50%);background:var(--ink);padding:3px 10px;font:700 .78rem/1.3 var(--mono);color:var(--amb);white-space:nowrap;border:1px solid var(--amb)}
-.lane::after{content:"";position:absolute;left:var(--c,0);top:-12px;bottom:-12px;border-left:1px solid var(--amb);z-index:4;display:none}
-.scrubbing .lane::after{display:block}
-.seg.reuse b{position:absolute;left:6px;top:50%;transform:translateY(-50%);max-width:calc(100% - 12px);overflow:hidden;white-space:nowrap;background:var(--ink);color:var(--amb);font:600 .66rem/1.7 var(--mono);padding:0 6px}
-.ctl{display:flex;flex-wrap:wrap;gap:12px 14px;align-items:center;margin-top:clamp(20px,3vw,32px)}
-.knobs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px var(--gap);margin-top:22px}
-.knob label{display:flex;justify-content:space-between;gap:12px;font-size:.88rem;color:var(--w2);margin-bottom:2px}
-.knob output{font:600 .82rem/1.9 var(--mono);color:var(--amb);white-space:nowrap}
-input[type=range]{appearance:none;-webkit-appearance:none;width:100%;height:44px;margin:0;background:none;cursor:pointer}
-input[type=range]::-webkit-slider-runnable-track{height:1px;background:var(--w2)}
-input[type=range]::-moz-range-track{height:1px;background:var(--w2)}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;margin-top:-11px;border-radius:50%;background:var(--amb);border:5px solid var(--ink);box-shadow:0 0 0 1px var(--amb),0 0 18px rgba(255,178,62,.55)}
-input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:var(--amb);border:5px solid var(--ink);box-shadow:0 0 0 1px var(--amb)}
-input[type=range]:disabled{opacity:.3;cursor:not-allowed}
-.read{margin-top:22px;border-top:1px solid var(--hair);padding-top:20px;min-height:5.2em}
-.big{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 18px;font:800 clamp(1.7rem,4.8vw,3.3rem)/1.1 var(--mono);letter-spacing:-.04em;margin:0 0 10px}
-.big small{font:500 .7rem/1.6 var(--mono);letter-spacing:.1em;color:var(--w2);flex-basis:100%}
-.big s{text-decoration:none;color:var(--w3)}
-.big em{font-style:normal;color:var(--amb);text-shadow:0 0 34px rgba(255,178,62,.45)}
-.why{color:var(--w2);font-size:.98rem;max-width:40em;margin:0}
-.why b{color:var(--w);font-weight:600}
-.now{font:500 .8rem/1.7 var(--mono);color:var(--w2);margin:12px 0 0}
-.lab .fine{margin-top:18px}
-
-/* 作品 */
-.work{margin-top:clamp(48px,7vw,96px);padding-top:26px;border-top:1px solid var(--w)}
-.work-h{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:var(--gap);margin-bottom:clamp(24px,3.4vw,44px)}
-.work-h p{color:var(--w2);margin:0;max-width:33em}
-.work-h p b{color:var(--w);font-weight:600}
-.pipe{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;font:500 .76rem/1.5 var(--mono);color:var(--w2);margin:0 0 20px;padding:0;list-style:none}
-.pipe li{border:1px solid var(--hair);padding:.4em .8em}
-.pipe li.hot{border-color:var(--amb);color:var(--amb)}
-.pipe li.ar{border:0;padding:0;color:var(--w3)}
-.bidi{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr)}
-.bidi>div{padding:clamp(16px,2.6vw,30px);min-width:0}
-.bidi>div+div{border-left:1px solid var(--hair)}
-.cap{font:500 .7rem/1.6 var(--mono);letter-spacing:.12em;color:var(--w2);margin:0 0 14px}
-table{width:100%;border-collapse:collapse;font-size:.9rem}
-th{font:500 .68rem/1.6 var(--mono);letter-spacing:.1em;color:var(--w3);text-align:left;padding:0 8px 8px 0}
-td{padding:11px 8px 11px 0;border-top:1px solid var(--hair);white-space:nowrap}
-tbody tr{cursor:pointer;transition:background .15s}
-tbody tr.hot,tbody tr:hover{background:var(--amb-s)}
-td.as{font:600 .8rem var(--mono);color:var(--w3)}
-tr.done td.as{color:var(--amb)}
-.topo{display:block;width:100%;height:auto}
-.topo .lk{stroke:var(--w3);stroke-width:1;stroke-dasharray:3 5;transition:stroke .3s}
-.topo .lk.done{stroke:var(--w);stroke-dasharray:none}
-.topo .lk.hot{stroke:var(--amb);stroke-width:2}
-.topo .hitbox{stroke:transparent;stroke-width:22;cursor:pointer}
-.topo .end{opacity:0;transition:opacity .3s}
-.topo .end.done{opacity:1}
-.topo .u{fill:var(--amb)}
-.topo .d{fill:var(--ink);stroke:var(--amb);stroke-width:1.4}
-.topo .nd{fill:var(--ink);stroke:var(--w);stroke-width:1.2}
-.topo text{font:600 12px var(--mono);fill:var(--w);text-anchor:middle;dominant-baseline:central}
-.topo .lg{font-weight:500;font-size:10px;fill:var(--w2);text-anchor:start}
-.bars{margin-top:22px;border-top:1px solid var(--hair);padding-top:18px}
-.bar{display:grid;grid-template-columns:5.6em minmax(0,1fr);gap:12px;align-items:center;font-size:.88rem;margin-bottom:10px}
-.bar span{color:var(--w2)}
-.bar div{position:relative;height:10px}
-.bar i{position:absolute;inset:0 auto 0 0;background:var(--w3)}
-.bar.new i{background:var(--amb);box-shadow:0 0 18px rgba(255,178,62,.6)}
-.bar b{position:absolute;top:50%;transform:translateY(-50%);margin-left:10px;font:600 .8rem var(--mono);white-space:nowrap}
-.rec{padding:clamp(16px,2.6vw,30px);font-family:var(--mono);font-size:.84rem;line-height:1.75}
-.rec-h{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 16px;color:var(--w2);letter-spacing:.08em;font-size:.72rem;padding-bottom:12px;border-bottom:1px solid var(--hair);margin-bottom:6px}
-.row{display:grid;grid-template-columns:7em minmax(0,1fr);gap:12px;padding:9px 0;border-bottom:1px solid var(--hair)}
-.row span{color:var(--w2)}
-.row b{font-weight:500}
-.row .ok{color:var(--w)}
-.row .no{color:var(--amb)}
-.carry{border-left:2px solid var(--amb);background:var(--amb-s);padding:10px 14px;margin:0 0 6px;color:var(--w)}
-.ask{font:700 1.08rem/1.6 var(--disp);margin:20px 0 12px}
-.badge{display:inline-block;font:700 1.25rem/1 var(--mono);letter-spacing:.06em;color:var(--amb);border:1.5px solid var(--amb);padding:.4em .7em;box-shadow:0 0 30px rgba(255,178,62,.28);animation:stampin .32s cubic-bezier(.2,1.5,.4,1)}
-@keyframes stampin{from{transform:scale(1.5);opacity:0}}
-.verdict{font-family:var(--disp);font-size:.98rem;line-height:1.75;color:var(--w2);margin:14px 0 16px;max-width:36em}
-.verdict b{color:var(--w);font-weight:600}
-
-/* 页尾 */
-.end{padding:clamp(72px,11vw,160px) 0 44px}
-.gh{display:block;text-decoration:none;border-top:1px solid var(--w);border-bottom:1px solid var(--w);padding:clamp(26px,4.4vw,56px) 0;transition:color .15s,padding .25s}
-.gh:hover{color:var(--amb);padding-left:14px}
-.gh span{display:block}
-.gh .u{font:900 clamp(1.7rem,6.6vw,5rem)/1.1 var(--disp);letter-spacing:-.03em}
-.foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 24px;margin-top:26px}
-
-@media (max-width:820px){
-  body{font-size:16px}
-  .hero-main{grid-template-columns:minmax(0,1fr);align-content:start;gap:20px;padding-top:7vh}
-  .name{font-size:min(43vw,15rem)}
-  .say{justify-self:start;align-self:start;margin:0}
-  .cols,.work-h,.bidi,.knobs{grid-template-columns:minmax(0,1fr)}
-  .bidi>div+div{border-left:0;border-top:1px solid var(--hair)}
-  .axis span:nth-child(even){display:none}
-  .th{flex-direction:column;gap:0;margin-bottom:34px}
-  .ctl .btn{flex:1 1 100%}
-  .row{grid-template-columns:5.4em minmax(0,1fr)}
-}
-@media (prefers-reduced-motion:reduce){
-  html{scroll-behavior:auto}
-  *,*::before,*::after{animation:none!important;transition:none!important}
-}
-</style>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>江尘 · 一束光，从智利到北京</title>
+<meta name="description" content="江尘的个人主页。我做面向真实工程任务的智能体。地图上的一束光从智利到北京，点开两端，看我在那里做的事。">
+<meta name="theme-color" content="#04070d">
+<meta property="og:title" content="江尘 · 一束光，从智利到北京">
+<meta property="og:description" content="我做面向真实工程任务的智能体。点开光束的两端，看我在智利和北京做的事。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2304070d'/%3E%3Cpath d='M25 24C23 11 15 7 7 11' fill='none' stroke='%23e9eff8' stroke-width='1.6'/%3E%3Ccircle cx='25' cy='24' r='3.2' fill='%23ffb347'/%3E%3Ccircle cx='7' cy='11' r='3.2' fill='%235fe1ff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/site.css">
+<script>
+(function (d) {
+  // 够宽够高就整屏铺地图；否则地图在上、内容在下
+  window.ZT_MODE = function () { var w = innerWidth, h = innerHeight; return w >= 900 && h >= 560 && w / h >= 1.15 ? 'wide' : 'stack'; };
+  d.className = 'js';
+  d.dataset.mode = window.ZT_MODE();
+})(document.documentElement);
+</script>
 </head>
 <body>
-<canvas id="fx" aria-hidden="true"></canvas>
-<canvas id="fx2" aria-hidden="true"></canvas>
-<div class="page">
 
-<header class="hero" id="top">
-  <div class="hero-top">
-    <span class="mono">ZHANG TENG</span>
-    <nav aria-label="页面导航">
-      <a href="https://gitgpt-jpg.github.io/jiangchen/" rel="me" class="beam">一束光 ✦</a>
-      <a href="#lab">时间线</a>
-      <a href="#works">作品</a>
-      <a href="https://github.com/GitGPT-jpg" rel="me noopener">GitHub ↗</a>
-    </nav>
+<!-- 地图：底层点阵陆地，上层光束；标签是真正的按钮 -->
+<div class="stage" id="stage">
+  <canvas id="map-base" aria-hidden="true"></canvas>
+  <canvas id="map-fx" aria-hidden="true"></canvas>
+  <div class="labels" id="labels">
+    <button class="chip chip-cl" id="chip-chile" type="button" data-go="chile">
+      <span class="chip-k">智利 <i>CHILE</i></span>
+      <span class="chip-s">中兴通讯 · 外派</span>
+      <span class="chip-t">设备升级 Agent Harness</span>
+      <span class="chip-go">点击进入 <b aria-hidden="true">→</b></span>
+    </button>
+    <button class="chip chip-bj" id="chip-beijing" type="button" data-go="beijing">
+      <span class="chip-k">北京 <i>BEIJING</i></span>
+      <span class="chip-s">百度<!-- confidential-ok --> · 训练推理</span>
+      <span class="chip-t">排障智能体「北辰」</span>
+      <span class="chip-t">推理研发工作台</span>
+      <span class="chip-go">点击进入 <b aria-hidden="true">→</b></span>
+    </button>
+    <span class="pin pin-r" id="pin-nanjing">南京</span>
+    <span class="beam-tag" id="beam-tag" aria-hidden="true"></span>
   </div>
-  <div class="hero-main">
-    <h1 class="name">张腾</h1>
-    <p class="say"><span>以前在智利排查光链路，</span><span>现在在北京</span><span>研究一个 <span class="tk">token</span></span><span>要等多久。</span></p>
-  </div>
-  <a class="down" href="#about">沿着这条线往下走 <span aria-hidden="true">↓</span></a>
+</div>
+
+<header class="top">
+  <a class="brand" href="#" id="brand" aria-label="江尘 · 回到全景">
+    <svg viewBox="0 0 32 32" width="22" height="22" aria-hidden="true"><path d="M26 25C24 11 15 6 6 10" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="26" cy="25" r="3.2" fill="#ffb347"/><circle cx="6" cy="10" r="3.2" fill="#5fe1ff"/></svg>
+    <b>江尘</b><span>JIANG CHEN</span>
+  </a>
+  <a class="back" href="#" id="back"><span aria-hidden="true">←</span> 全景</a>
+  <p class="clocks" id="clocks" aria-label="两地此刻的时间">
+    <span class="clock clock-cl">智利 <b id="t-cl">--:--:--</b><em id="d-cl"></em></span>
+    <span class="clock clock-bj">北京 <b id="t-bj">--:--:--</b><em id="d-bj"></em></span>
+    <span class="gap" id="t-gap"></span>
+  </p>
+  <a class="gh" href="https://github.com/GitGPT-jpg" rel="me noopener">GitHub <span aria-hidden="true">↗</span></a>
 </header>
 
 <main>
-<section class="about" id="about">
-  <div class="wrap">
-    <p class="lead">同一条线。在智利，它是一条<em>光链路</em>；到了北京，它是一次大模型推理请求的<em>时间线</em>。</p>
-    <div class="cols">
-      <p class="bio">我是张腾。物联网工程毕业，在<b>中兴</b>做过光通信工程师，在智利参与光网络交付和现场排障。现在在北京，<b>百度<!-- confidential-ok -->训练推理</b>，做大模型推理系统、KV Cache 性能分析和研发 Agent。</p>
-      <div>
-        <p class="k">我喜欢追两个问题</p>
-        <a class="q" href="#lab"><i>01</i><span>时间到底花在哪一步？</span></a>
-        <a class="q" href="#works"><i>02</i><span>一件反复靠人盯着的事，能不能让系统自己可靠地跑完？</span></a>
-      </div>
-    </div>
-  </div>
+
+<section class="intro" id="intro" aria-labelledby="name">
+  <p class="kicker">百度<!-- confidential-ok --> · 训练推理</p>
+  <h1 id="name">江尘</h1>
+  <p class="lead">我做面向真实工程任务的智能体。</p>
+  <p class="bio">工作横跨通信设备运维与大模型推理系统：先在中兴通讯外派智利，现在在北京，就职于百度<!-- confidential-ok -->训练推理。</p>
+  <p class="kicker q-k">我关心三个具体问题</p>
+  <ol class="qs">
+    <li><a href="#harness" data-site="chile"><span>模型提出的动作，在什么条件下可以执行？</span><em>智利</em></a></li>
+    <li><a href="#xiaobei" data-site="beijing"><span>多个故障能产生相同症状时，系统凭什么确认根因？</span><em>北京</em></a></li>
+    <li><a href="#evolve" data-site="beijing"><span>智能体从一次复盘中学到的经验，怎样证明对下一次任务也有用？</span><em>北京</em></a></li>
+  </ol>
+  <noscript><p class="bio">地图和演练台需要 JavaScript；下面的文字可以照常阅读。</p></noscript>
 </section>
 
-<section class="sec" id="lab">
-  <div class="wrap">
-    <p class="k">01 · INFERENCE TIMELINE</p>
-    <h2>时间到底花在哪一步？</h2>
-    <p class="dek">刚才那条光路，现在是下面这根时间轴。发一个请求，看它依次经过排队、Prefill，直到首个 token 到达，再一个 token 一个 token 地把话说完。</p>
+<!-- ============ 智利 ============ -->
+<article class="site site-cl" id="chile" aria-labelledby="chile-h" tabindex="-1">
+  <header class="site-bar">
+    <p class="site-loc"><i aria-hidden="true"></i><b>智利</b><span>圣地亚哥 · 33.45°S 70.67°W</span></p>
+    <p class="site-time">当地 <b id="p-t-cl">--:--</b><em id="p-d-cl"></em></p>
+    <a class="site-x" href="#" aria-label="关闭，回到全景">×</a>
+  </header>
+  <div class="site-body">
+    <p class="kicker">中兴通讯 · 外派智利 · 光网络交付</p>
+    <h2 id="chile-h">通信设备升级 Agent Harness <span class="ver">v0.2 原型</span></h2>
+    <p class="first">在智利做光网络交付、守夜间维护窗口的那段时间，我抽象出了第一个代表项目。</p>
+    <p>设备升级有相对稳定的操作链：预检、上传、安装和验证。真正需要工程判断的时刻，往往发生在标准流程出现偏差之后。安装失败时，工程师要结合设备状态、业务影响和剩余窗口决定下一步。</p>
+    <p class="pull">先前对启动升级的批准，并不自动包含回滚授权。</p>
+    <p>基于这一点，我把自然语言交互、动作决策和设备执行拆开设计。OpenClaw Agent 负责理解升级目标、查询状态和提出动作；所有执行请求经过类型化工具进入 Python 状态机，由状态机校验前置条件、任务状态及对应授权，再交给设备适配器执行。</p>
 
-    <div class="panel lab">
-      <div class="req-bar" aria-hidden="true"><i><u id="reqHit"></u></i><i></i></div>
-      <div class="req-l">
-        <span><b>前缀</b>系统提示和排障手册，640 tokens</span>
-        <span><b>问题</b>“时间到底花在哪一步？”，160 tokens</span>
-      </div>
+    <section class="rig" id="harness" aria-labelledby="harness-h">
+      <header class="rig-h">
+        <p class="rig-q">模型提出的动作，在什么条件下可以执行？</p>
+        <h3 id="harness-h">值一次夜班：你来当批准人</h3>
+        <p class="rig-note">浏览器里按同一套规则重做的演练 · 设备是 Mock · 数据为合成</p>
+      </header>
+      <div class="rig-app" id="harness-app"></div>
+    </section>
 
-      <div class="plot" id="plot">
-        <div class="axis" id="axis" aria-hidden="true"></div>
-        <div class="track" id="trk1"></div>
-        <div class="gapline" id="gap" hidden></div>
-        <div class="track" id="trk2"></div>
-      </div>
+    <h3 class="sub">三样东西，分开存放</h3>
+    <p>这套 Harness 中，我把会话上下文、任务状态和执行证据分别处理。SQLite 保存任务当前所处的状态，<code>request_id</code> 用于保证重复建单请求的幂等性，追加式 JSONL 事件流记录工具调用、执行结果、人工批准和异常。这样，即使对话上下文被裁剪，系统仍然可以从持久记录回答“设备走到了哪一步”“谁批准了哪个动作”。</p>
+    <p>我在 v0.2 原型中接入 OpenClaw，通过 Mock 设备适配器注入安装和验证故障，检验单设备流程能否在正确的位置停下、等待独立的回滚授权，并留下可回放的执行轨迹。上面这台演练机做的是同一件事。</p>
 
-      <div class="ctl">
-        <button type="button" class="btn btn-a" id="send">发送请求</button>
-        <button type="button" class="btn" id="again" disabled>复用前缀，再跑一次</button>
-      </div>
-
-      <div class="knobs">
-        <div class="knob">
-          <label for="scrub"><span>拖动时间，对比同一时刻</span><output id="scrubOut">—</output></label>
-          <input type="range" id="scrub" min="0" max="1200" step="5" value="1200" disabled>
-        </div>
-        <div class="knob">
-          <label for="hit"><span>第二次命中多少前缀</span><output id="hitOut">640 / 640 tokens</output></label>
-          <input type="range" id="hit" min="0" max="640" step="40" value="640" disabled>
-        </div>
-      </div>
-
-      <div class="read" id="read" aria-live="polite"><p class="why">点「发送请求」。两次请求会上下对齐画在同一根时间轴上。</p></div>
-      <p class="fine">原理示意：数值是为了说明原理设定的，不是实测；回放放慢了 3 倍。两次是同一个请求、同样的排队；没命中的部分照常计算，缓存查找的开销忽略不计。</p>
-      <noscript><p class="fine">时间线需要启用 JavaScript。静态结论：第一次首个 token 在 600 ms（排队 120 + Prefill 480）；复用 640 个前缀 token 后在 216 ms，早 384 ms。</p></noscript>
-    </div>
+    <p class="site-next"><a href="#beijing" data-ride>沿着这束光，去北京 <span aria-hidden="true">→</span></a></p>
   </div>
-</section>
+</article>
 
-<section class="sec" id="works">
-  <div class="wrap">
-    <p class="k">02 · WORKS</p>
-    <h2>一件反复靠人盯着的事，能不能让系统自己可靠地跑完？</h2>
-    <p class="dek">我带你看两件真事。一件在智利的现场，一件在北京的实验里。图都是抽象示意。</p>
+<!-- ============ 北京 ============ -->
+<article class="site site-bj" id="beijing" aria-labelledby="beijing-h" tabindex="-1">
+  <header class="site-bar">
+    <p class="site-loc"><i aria-hidden="true"></i><b>北京</b><span>39.90°N 116.41°E</span></p>
+    <p class="site-time">当地 <b id="p-t-bj">--:--</b><em id="p-d-bj"></em></p>
+    <a class="site-x" href="#" aria-label="关闭，回到全景">×</a>
+    <nav class="site-nav" aria-label="北京的三件事">
+      <a href="#xiaobei">北辰 · 诊断</a>
+      <a href="#evolve">北辰 · 自进化</a>
+      <a href="#workbench">推理研发工作台</a>
+    </nav>
+  </header>
+  <div class="site-body">
+    <p class="kicker">百度<!-- confidential-ok --> · 训练推理</p>
+    <h2 id="beijing-h">自进化排障智能体「北辰」</h2>
+    <p class="first">进入百度<!-- confidential-ok -->后，我开发了面向 Prefill/Decode 分离推理引擎的自进化排障智能体「北辰」。</p>
+    <p>这个场景的难点是故障症状高度共性。<code>detokenizer</code> 心跳停止、就绪探针返回 503，可能同时出现在内存耗尽、MoE 专家并行组重配置、RDMA 资源耗尽或 KV 传输异常等事件中。</p>
+    <figure class="fan" id="fan-app"></figure>
 
-    <article class="work" id="w1">
-      <div class="work-h">
-        <div><p class="k">SANTIAGO · 光网络规划自动化</p><h3>表进去，图出来</h3></div>
-        <p>在现场，我把 <b>Excel 规划数据</b>、<b>BiDi 分配规则</b>和 <b>Visio 出图</b>串成了一个工具。其中 BiDi 分配这一步，原本要花半天，缩短到了约 10 分钟。省下的时间来自哪里？点一下看。</p>
-      </div>
-      <ol class="pipe" aria-label="工具链">
-        <li>Excel 规划数据</li><li class="ar" aria-hidden="true">→</li><li class="hot">BiDi 分配规则</li><li class="ar" aria-hidden="true">→</li><li>Visio 出图</li>
-      </ol>
-      <div class="panel bidi">
-        <div>
-          <p class="cap">规划表 · 示意</p>
-          <table>
-            <thead><tr><th>链路</th><th>A 端</th><th>B 端</th><th>BiDi</th></tr></thead>
-            <tbody id="rows"></tbody>
-          </table>
-          <div class="ctl"><button type="button" class="btn btn-a btn-s" id="assign">按规则分配</button><button type="button" class="btn btn-s" id="unassign" hidden>回到分配前</button></div>
-          <p class="fine" id="bidiNote" style="margin-top:14px">分配前：每条链路的两端都还空着。手工做，要一行一行对规则、填表，再照着表改图。</p>
-        </div>
-        <div>
-          <p class="cap">拓扑图 · 示意</p>
-          <svg class="topo" id="topo" viewBox="0 0 360 250" role="img" aria-label="四个站点、五条链路的抽象拓扑图"></svg>
-          <div class="bars" aria-label="BiDi 分配耗时对比">
-            <div class="bar old"><span>以前</span><div><i style="width:86%"></i><b style="left:86%">半天</b></div></div>
-            <div class="bar new"><span>现在</span><div><i style="width:3.6%"></i><b style="left:3.6%">约 10 分钟</b></div></div>
-            <p class="fine">条的长短是示意，只画 BiDi 分配这一步。</p>
-          </div>
-        </div>
-      </div>
-    </article>
+    <p>我把系统职责划分为主理人、诊断专家和复盘专家。</p>
+    <ol class="roles" aria-label="北辰的三个角色">
+      <li><b>主理人</b><span>处理每轮入口与任务路由</span></li>
+      <li><b>诊断专家</b><span>按故障域并行调用取证工具</span>
+        <ul><li>日志</li><li>服务指标</li><li>节点指标</li><li>Pod 生命周期</li><li>单请求轨迹</li><li>对应版本源码</li></ul>
+      </li>
+      <li><b>复盘专家</b><span>用户确认诊断结束后，登记真实根因与反馈</span></li>
+    </ol>
+    <p class="packet"><i>角色之间传递的是</i><span>目标实例</span><span>时间窗</span><span>证据来源</span><span>取数状态</span><span>待验证假设</span></p>
+    <p>这样，后续判断能追溯到具体观测。</p>
 
-    <article class="work" id="w2">
-      <div class="work-h">
-        <div><p class="k">BEIJING · 推理实验 Agent Harness</p><h3>命令正常退出了，这轮算成功吗？</h3></div>
-        <p>这是我做推理实验时真碰到的判断：一次压测命令<b>正常退出</b>了，但<b>主指标没采到</b>。下面是那一轮的实验记录，你先判一次。</p>
-      </div>
-      <div class="panel rec" id="rec"></div>
-    </article>
+    <section class="rig" id="xiaobei" aria-labelledby="xiaobei-h">
+      <header class="rig-h">
+        <p class="rig-q">多个故障能产生相同症状时，系统凭什么确认根因？</p>
+        <h3 id="xiaobei-h">证据门禁：证据到哪一步，结论就说到哪一步</h3>
+        <p class="rig-note">北辰的核心设计，是把每类根因需要满足的证据条件写成可执行的门禁。排查 EP 组故障，要联合核对 worker 心跳、缩容或重配置事件以及请求路由变化；怀疑 RDMA 队列对（QP）耗尽，则要完成相关排除检查，并取得故障节点的 QP 实测。</p>
+      </header>
+      <div class="rig-app" id="gate-app"></div>
+    </section>
+    <p>若节点查询超时，报告仍可确认“该实例未通过就绪检查”，但对“QP 耗尽”的判断最多到“疑似”。我把这种确定性落实到每一条结论上：同一份结构化证据先生成供值班人员阅读的九行简报，再渲染附有证据、未决项和验证方法的完整报告。</p>
+
+    <h3 class="sub">慢在哪一段</h3>
+    <p>我也为取证过程加入分段打点，按时间区间并集计算并行工具的实际占用，以区分数据源慢、模型耗时和编排往返过多这几类不同的优化问题。</p>
+    <figure class="trace" id="trace-app"></figure>
+
+    <section class="rig" id="evolve" aria-labelledby="evolve-h">
+      <header class="rig-h">
+        <p class="rig-q">智能体从一次复盘中学到的经验，怎样证明对下一次任务也有用？</p>
+        <h3 id="evolve-h">自进化：一次技能修改，是一个待检验的候选假设</h3>
+        <p class="rig-note">用户纠错、真实根因和诊断复盘可以进入优化队列，进化器据此提出 Skill 补丁。候选先经过修改范围、语法和 diff 审查，再与旧版在同一批冻结取证包上回放，按参考答案比较故障命中、误报，以及证据缺失时能否正确给出“未知”。候选的开发集主指标必须严格优于基线，并经人工确认后才能采纳。</p>
+      </header>
+      <div class="rig-app" id="evolve-app"></div>
+    </section>
+    <p>做离线评测时，我曾发现一批样本的任务描述泄漏了故障类别，于是将那轮对比判为无效，把类别标签留在评分侧，再按案例族切分数据集。这直接影响我能否回答一个关键问题：分数提高，究竟来自诊断策略改进，还是因为题面已经暗示了答案？</p>
+
+    <section class="rig" id="workbench" aria-labelledby="workbench-h">
+      <header class="rig-h">
+        <p class="rig-q rig-now">正在开发</p>
+        <h3 id="workbench-h">基于自研 AI 编程助手的推理研发工作台插件</h3>
+        <p class="rig-note">把这些经验用于需要多轮修改和实验的研发任务。Agent 根据目标组织实验，CLI 管理任务状态和轮次，独立验收器根据真实退出码、主指标、阈值及硬约束判定结果。</p>
+      </header>
+      <div class="rig-app" id="bench-app"></div>
+    </section>
+    <p>压测正常退出但缺少主指标时，本轮进入 <code>blocked</code>，记录需要补采的证据；数据有效但未达标时，失败原因进入下一轮。每份结果还绑定执行批次和轮次标识，防止任务重开后，旧执行的迟到结果覆盖当前结论。</p>
+    <p class="pull">沿着这条方向，我希望进一步量化 Agent 自身的工程收益：增加一次取证、一次模型调用或一轮复盘，究竟纠正了多少误判，又让工程师多等了多久。</p>
+
+    <p class="site-next"><a href="#chile" data-ride><span aria-hidden="true">←</span> 逆着这束光，回智利</a></p>
   </div>
-</section>
+</article>
+
 </main>
 
-<footer class="end">
-  <div class="wrap">
-    <a class="gh" href="https://github.com/GitGPT-jpg" rel="me noopener">
-      <span class="k">代码和更多项目在这里</span>
-      <span class="u">github.com/GitGPT-jpg <span aria-hidden="true" style="display:inline">↗</span></span>
-    </a>
-    <div class="foot mono">
-      <span>张腾 · ZHANG TENG</span>
-      <span>SANTIAGO → BEIJING</span>
-      <a href="#top">回到顶部 ↑</a>
-    </div>
-  </div>
+<footer class="foot" id="foot">
+  <p class="route"><span>南京</span><i aria-hidden="true">→</i><a href="#chile">中兴通讯 · 智利</a><i aria-hidden="true">→</i><a href="#beijing">百度<!-- confidential-ok --> · 北京</a></p>
+  <p class="meta"><span id="beam-meta">圣地亚哥 → 北京 · 大圆航线</span><span>地图的明暗是此刻的昼夜</span></p>
 </footer>
-</div>
 
-<script id="zt-sim">
-// 页面里所有“会算”的东西都在这里，不碰 DOM；tests/ 直接取这一段来验证。
-(function (G) {
-'use strict';
-
-/* ---------- 推理时间线：原理示意，数值不是实测 ---------- */
-const CFG = Object.freeze({
-  queue: 120,        // 排队，两次相同
-  prefix: 640,       // 前缀 token 数（可复用）
-  suffix: 160,       // 问题 token 数（每次都要算）
-  usPerTok: 600,     // Prefill 每 token 耗时（微秒，整数避免浮点误差）
-  decodeMs: 45,      // 逐 token 输出间隔
-  axis: 1200,        // 时间轴长度（ms）
-  tokens: Object.freeze(['先', '看', ' Prefill', '：', '输入', '越长', '，', '首个', ' token', ' 来得', '越晚', '。'])
-});
-const prefillMs = n => n * CFG.usPerTok / 1000;
-
-// hit：命中的前缀 token 数（对齐到 5 的倍数，保证整毫秒）。没命中的前缀和问题部分照常计算。
-function run(hit) {
-  hit = Math.max(0, Math.min(CFG.prefix, Math.round((hit || 0) / 5) * 5));
-  const miss = CFG.prefix - hit, segs = [];
-  let t = CFG.queue;
-  if (miss > 0) { segs.push({kind: 'prefix', tokens: miss, from: t, to: t + prefillMs(miss)}); t += prefillMs(miss); }
-  segs.push({kind: 'suffix', tokens: CFG.suffix, from: t, to: t + prefillMs(CFG.suffix)}); t += prefillMs(CFG.suffix);
-  const times = CFG.tokens.map((_, i) => t + i * CFG.decodeMs);   // 首个 token 在 Prefill 结束时到达
-  return {hit, miss, queue: [0, CFG.queue], segs, computed: miss + CFG.suffix, prefillMs: t - CFG.queue, ttft: t, times, total: times[times.length - 1], savedMs: prefillMs(hit)};
-}
-// 某一时刻这次请求走到哪了
-function at(r, t) {
-  const shown = r.times.filter(x => x <= t).length;
-  return {shown, phase: t < r.queue[1] ? 'queue' : t < r.ttft ? 'prefill' : t < r.total ? 'decode' : 'done'};
-}
-function compare(a, b) {
-  return {sameQueue: a.queue[1] === b.queue[1], ttftDelta: a.ttft - b.ttft, prefillDelta: a.prefillMs - b.prefillMs, savedTokens: b.hit - a.hit};
-}
-
-/* ---------- BiDi 分配：抽象示意，规则只有一条——同一条链路两端必须成对 ---------- */
-const LINKS = Object.freeze([
-  {id: 'L1', a: 'A', b: 'B'}, {id: 'L2', a: 'A', b: 'C'}, {id: 'L3', a: 'B', b: 'C'}, {id: 'L4', a: 'B', b: 'D'}, {id: 'L5', a: 'C', b: 'D'}
-]);
-const assign = links => links.map(l => ({id: l.id, a: l.a, b: l.b, aEnd: 'U', bEnd: 'D'}));
-const check = list => list.every(x => 'UD'.indexOf(x.aEnd) >= 0 && 'UD'.indexOf(x.bEnd) >= 0 && x.aEnd !== x.bEnd);
-
-/* ---------- 实验记录：命令正常退出 ≠ 这轮成功 ---------- */
-function judge(rec) {
-  if (rec.exitCode !== 0) return {status: 'failed', missing: [], carry: null};
-  if (rec.metric == null) return {status: 'blocked', missing: ['主指标的测量结果'], carry: '上一轮 blocked：压测命令正常退出，但主指标没有采到。'};
-  return {status: 'done', missing: [], carry: null};
-}
-const nextRound = (rec, v) => ({round: rec.round + 1, exitCode: null, metric: null, carried: v.carry});
-
-G.ZT = {CFG, run, at, compare, LINKS, assign, check, judge, nextRound};
-})(typeof globalThis !== 'undefined' ? globalThis : this);
-</script>
-<script>
-(function () {
-'use strict';
-const Z = window.ZT, C = Z.CFG, $ = id => document.getElementById(id);
-const rm = matchMedia('(prefers-reduced-motion: reduce)');
-const pc = ms => (ms / C.axis * 100).toFixed(3) + '%';
-
-/* ============ 光路：一束粒子，从智利流到北京，再落成时间轴 ============ */
-const fx = (function () {
-  // 两层画布：底层是带拖尾的环境粒子，上层的光路每帧清空重画（滚动时不留残影）
-  const cv = $('fx'), c = cv.getContext('2d'), cv2 = $('fx2'), k = cv2.getContext('2d'), axis = $('axis');
-  let W = 0, H = 0, photons = [], motes = [], speed = 1, ptr = null, last = 0, clock = 0, raf = 0, queued = false;
-  const rnd = Math.random, col = new Float32Array(81);
-
-  function seed() {
-    const small = W < 820;
-    photons = Array.from({length: small ? 70 : 130}, () => {
-      const r = rnd(), far = r > .86;                      // 大多数贴着线走，少数散成一条光带
-      return {t: rnd(), v: .045 + rnd() * .085, o: (rnd() - .5) * (r < .55 ? 5 : far ? 84 : 24), l: .015 + rnd() * .05, a: (.3 + rnd() * .7) * (far ? .35 : 1)};
-    });
-    motes = Array.from({length: Math.min(540, Math.round(W * H / (small ? 2600 : 3300)))}, () => ({x: rnd() * W, y: rnd() * H, s: .35 + rnd() * .95, a: .16 + rnd() * .55, amb: rnd() < .2}));
-  }
-  function size() {
-    const d = Math.min(window.devicePixelRatio || 1, 2), w = window.innerWidth, h = window.innerHeight;
-    const reseed = w !== W || Math.abs(h - H) > 140;       // 手机地址栏收起时不重排粒子
-    W = w; H = h;
-    for (const [el, x] of [[cv, c], [cv2, k]]) { el.width = W * d; el.height = H * d; x.setTransform(d, 0, 0, d, 0, 0); }
-    if (reseed) seed();
-    c.fillStyle = '#0a0b0d'; c.fillRect(0, 0, W, H);
-    if (rm.matches) draw(0, true);
-  }
-  // 首屏是一条 S 形光路；滚动时拉直，最后落在时间轴上
-  function geom() {
-    const r = axis.getBoundingClientRect(), sy = window.scrollY, small = W < 820;
-    const D = Math.max(1, r.bottom + sy - H * .55), p = Math.min(1, Math.max(0, sy / D)), e = p * p * (3 - 2 * p);
-    const hp = small ? [[.06 * W, .83 * H], [.44 * W, .83 * H], [.50 * W, .63 * H], [.94 * W, .63 * H]]
-                     : [[.05 * W, .85 * H], [.40 * W, .85 * H], [.52 * W, .20 * H], [.95 * W, .20 * H]];
-    const yT = p >= 1 ? r.bottom - .5 : H * .55, xa = r.left, xb = r.right;
-    return {p, e, at(t) {
-      const u = 1 - t, b0 = u * u * u, b1 = 3 * u * u * t, b2 = 3 * u * t * t, b3 = t * t * t;
-      const x = b0 * hp[0][0] + b1 * hp[1][0] + b2 * hp[2][0] + b3 * hp[3][0], y = b0 * hp[0][1] + b1 * hp[1][1] + b2 * hp[2][1] + b3 * hp[3][1];
-      return [x + (xa + (xb - xa) * t - x) * e, y + (yT - y) * e];
-    }};
-  }
-  function draw(dt, still) {
-    const g = geom(), dim = 1 - .6 * g.e, lum = 1 - .6 * Math.sin(Math.PI * g.e);   // 变形途中把光压暗，免得划过正文
-    const s = g.at(0), t = g.at(1), sx = s[0], span = Math.max(1, t[0] - s[0]);
-    // 光路在每个横坐标上的高度：环境粒子靠近它时会被照亮
-    col.fill(-9999);
-    for (let i = 0; i <= 240; i++) { const q = g.at(i / 240), b = Math.round((q[0] - sx) / span * 80); if (b >= 0 && b <= 80) col[b] = q[1]; }
-    c.fillStyle = still ? '#0a0b0d' : 'rgba(10,11,13,.13)'; c.fillRect(0, 0, W, H);
-
-    // 环境粒子：顺着一个缓慢起伏的流场，从左往右淌
-    c.lineWidth = 1;
-    for (const m of motes) {
-      const a = -.28 + Math.sin(m.x * .0031 + clock * .00019) * .95 + Math.cos(m.y * .0042 - clock * .00015) * .95;
-      let vx = Math.cos(a) * m.s, vy = Math.sin(a) * m.s;
-      if (ptr) { const dx = m.x - ptr[0], dy = m.y - ptr[1], d2 = dx * dx + dy * dy; if (d2 < 19600 && d2 > 1) { const f = (1 - d2 / 19600) * 2.2 / Math.sqrt(d2); vx += dx * f; vy += dy * f; } }
-      const px = m.x, py = m.y;
-      m.x += vx * dt * .07; m.y += vy * dt * .07;
-      if (m.x > W + 4) { m.x = -4; m.y = rnd() * H; continue; }
-      if (m.x < -4) { m.x = W + 4; continue; }
-      if (m.y < -4) { m.y = H + 4; continue; }
-      if (m.y > H + 4) { m.y = -4; continue; }
-      const b = Math.round((m.x - sx) / span * 80), near = b >= 0 && b <= 80 ? Math.max(0, 1 - Math.abs(m.y - col[b]) / 120) * lum : 0;
-      c.strokeStyle = (m.amb || near > .3 ? 'rgba(255,178,62,' : 'rgba(243,234,217,') + (m.a * (m.amb ? 1 : .5) * dim + near * .55) + ')';
-      c.beginPath(); c.moveTo(px, py); c.lineTo(still ? px + 1.4 : m.x, still ? py : m.y); c.stroke();
-    }
-
-    // 极细的线路 + 琥珀色光晕
-    k.clearRect(0, 0, W, H);
-    k.globalCompositeOperation = 'source-over';
-    k.beginPath();
-    for (let i = 0; i <= 72; i++) { const q = g.at(i / 72); if (i) k.lineTo(q[0], q[1]); else k.moveTo(q[0], q[1]); }
-    k.strokeStyle = 'rgba(255,178,62,' + .06 * lum + ')'; k.lineWidth = 18; k.stroke();
-    k.strokeStyle = 'rgba(255,178,62,' + .12 * lum + ')'; k.lineWidth = 5; k.stroke();
-    k.strokeStyle = 'rgba(243,234,217,' + .5 * lum + ')'; k.lineWidth = 1; k.stroke();
-
-    // 光：沿线流动的粒子
-    k.globalCompositeOperation = 'lighter';
-    for (const q of photons) {
-      if (!still) { q.t += q.v * dt * .001 * speed; if (q.t > 1) q.t -= 1; }
-      const a = g.at(q.t), b = g.at(Math.max(0, q.t - q.l * Math.min(speed, 1.8)));
-      let nx = -(a[1] - b[1]), ny = a[0] - b[0]; const n = Math.hypot(nx, ny) || 1; nx = nx / n * q.o; ny = ny / n * q.o;
-      k.strokeStyle = 'rgba(255,178,62,' + (q.a * .6 * lum) + ')'; k.lineWidth = 1.4;
-      k.beginPath(); k.moveTo(b[0] + nx, b[1] + ny); k.lineTo(a[0] + nx, a[1] + ny); k.stroke();
-      k.fillStyle = 'rgba(255,220,160,' + (q.a * lum) + ')';
-      k.beginPath(); k.arc(a[0] + nx, a[1] + ny, 1.3, 0, 6.2832); k.fill();
-    }
-
-    // 两端的站点和地名
-    k.globalCompositeOperation = 'source-over';
-    const la = Math.max(0, 1 - g.p * 3.5);
-    for (const q of [s, t]) { k.fillStyle = '#0a0b0d'; k.strokeStyle = 'rgba(243,234,217,.8)'; k.lineWidth = 1; k.beginPath(); k.arc(q[0], q[1], 3.5, 0, 6.2832); k.fill(); k.stroke(); }
-    if (la > 0) {
-      k.font = '500 11px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace'; k.fillStyle = 'rgba(170,162,147,' + la + ')';
-      k.textAlign = 'left'; k.fillText('SANTIAGO · CL', s[0], s[1] - 14);
-      k.textAlign = 'right'; k.fillText('BEIJING · CN', t[0], t[1] + 24);
-    }
-  }
-  function loop(now) { const dt = Math.min(40, now - last || 16); last = now; clock += dt; draw(dt, false); raf = requestAnimationFrame(loop); }
-  function start() { cancelAnimationFrame(raf); if (rm.matches) { draw(0, true); } else { last = 0; raf = requestAnimationFrame(loop); } }
-  function still() { if (!rm.matches || queued) return; queued = true; requestAnimationFrame(() => { queued = false; draw(0, true); }); }
-
-  size(); start();
-  window.addEventListener('resize', size);
-  window.addEventListener('scroll', still, {passive: true});
-  window.addEventListener('pointermove', e => { ptr = e.pointerType === 'mouse' ? [e.clientX, e.clientY] : null; }, {passive: true});
-  document.addEventListener('visibilitychange', () => { if (document.hidden) cancelAnimationFrame(raf); else start(); });
-  rm.addEventListener('change', start);
-  return {boost(v) { speed = v; }};
-})();
-
-/* ============ 时间线实验台 ============ */
-const S = {r: [null, Z.run(0), Z.run(C.prefix)], played: [false, false, false], t: [0, 0, 0], playing: false, raf: 0};
-const send = $('send'), again = $('again'), scrub = $('scrub'), hit = $('hit'), plot = $('plot');
-const PHASE = {queue: '排队中', prefill: 'Prefill 中', decode: '逐 token 输出', done: '完成'};
-
-$('axis').innerHTML = [0, 200, 400, 600, 800, 1000, 1200].map(ms => '<span style="left:' + pc(ms) + '">' + ms + (ms === 1200 ? ' ms' : '') + '</span>').join('');
-
-function build(n) {
-  const r = S.r[n];
-  let h = '<div class="th"><b>' + (n === 1 ? '第一次 · 缓存是空的' : '第二次 · 复用前缀') + '</b><span id="st' + n + '"></span></div><div class="lane" id="lane' + n + '"><div class="rev">';
-  h += '<i class="seg q" style="left:0;width:' + pc(r.queue[1]) + '"></i>';
-  if (n === 2 && r.hit) h += '<i class="seg hit" style="left:' + pc(r.queue[1]) + '"></i>';
-  r.segs.forEach(s => { h += '<i class="seg pf ' + s.kind + '" style="left:' + pc(s.from) + ';width:' + pc(s.to - s.from) + '"></i>'; });
-  if (n === 1 && S.played[2] && S.r[2].hit) h += '<i class="seg reuse" style="left:' + pc(C.queue) + ';width:' + pc(S.r[2].savedMs) + '"><b>第二次跳过</b></i>';
-  r.times.forEach((t, i) => { if (i) h += '<i class="tick" style="left:' + pc(t) + '"></i>'; });
-  h += '<i class="ttft" style="left:' + pc(r.ttft) + '"><b>首个 token ' + r.ttft + ' ms</b></i></div><i class="head"></i></div>';
-  h += '<p class="facts" id="facts' + n + '"></p><p class="out" id="out' + n + '" aria-label="' + (n === 1 ? '第一次' : '第二次') + '的输出">' + C.tokens.map((t, i) => '<i' + (i ? '' : ' class="first"') + '>' + t + '</i>').join('') + '</p>';
-  $('trk' + n).innerHTML = h;
-}
-function facts(n) {
-  const r = S.r[n];
-  return '排队 ' + r.queue[1] + ' ms · ' + (n === 2 ? '复用 ' + r.hit + ' tokens · ' : '') + 'Prefill ' + r.prefillMs + ' ms（' + (n === 2 && r.hit ? '只算 ' : '算 ') + r.computed + ' tokens）· <b>首个 token ' + r.ttft + ' ms</b>';
-}
-function paint() {
-  for (const n of [1, 2]) {
-    const r = S.r[n], on = S.played[n], t = on ? S.t[n] : -1, a = Z.at(r, t), lane = $('lane' + n), toks = $('out' + n).children;
-    lane.style.setProperty('--t', on ? Math.min(100, t / C.axis * 100) + '%' : '0%');
-    lane.classList.toggle('playing', S.playing && on && t < r.total);
-    for (let i = 0; i < toks.length; i++) toks[i].classList.toggle('on', i < a.shown);
-    $('st' + n).textContent = on ? PHASE[a.phase] + ' · t = ' + Math.round(Math.min(t, r.total)) + ' ms' : '尚未发送';
-    $('facts' + n).innerHTML = on && !S.playing ? facts(n) : '';
-  }
-}
-function gap() {
-  const g = $('gap'), d = Z.compare(S.r[1], S.r[2]).ttftDelta, show = S.played[2] && !S.playing && d > 0;
-  g.hidden = !show;
-  if (show) g.innerHTML = '<div style="left:' + pc(S.r[2].ttft) + ';width:' + pc(d) + '"><b>早 ' + d + ' ms</b></div>';
-  $('reqHit').style.width = S.played[2] ? S.r[2].hit / C.prefix * 100 + '%' : '0';
-}
-function read() {
-  const a = S.r[1], b = S.r[2], el = $('read');
-  if (!S.played[1] || S.playing) { el.innerHTML = '<p class="why">' + (S.playing ? '回放中，放慢了 3 倍。盯着那个亮点：它停在 Prefill 里的时间最长。' : '点「发送请求」。两次请求会上下对齐画在同一根时间轴上。') + '</p>'; return; }
-  let h;
-  if (!S.played[2]) {
-    h = '<p class="big"><small>首个 token</small>' + a.ttft + ' ms</p><p class="why">排队 ' + a.queue[1] + ' ms，Prefill ' + a.prefillMs + ' ms。Prefill 要把整段输入先算一遍：<b>' + C.prefix + ' 个前缀 token</b>，加上 ' + C.suffix + ' 个问题 token。现在点「复用前缀，再跑一次」。</p>';
-  } else {
-    const d = Z.compare(a, b);
-    h = '<p class="big"><small>首个 token</small><s>' + a.ttft + '</s><span>→</span><em>' + b.ttft + ' ms</em></p><p class="why">' + (b.hit
-      ? '早了 <b>' + d.ttftDelta + ' ms</b>，全部来自不用重算的 <b>' + b.hit + ' 个前缀 token</b>：它们的 KV Cache 还在，第一条轨道上打斜线的那一段，第二次直接跳过。没命中的 ' + b.computed + ' 个 token 照常计算，排队同样是 ' + b.queue[1] + ' ms。'
-      : '一个前缀 token 都没命中：第二次和第一次完全一样，没有省下任何 Prefill。') + '</p>';
-  }
-  const v = +scrub.value;
-  if (v < C.axis) {
-    const say = (n, r) => { const s = Z.at(r, v); return (n === 1 ? '第一次' : '第二次') + (s.phase === 'decode' || s.phase === 'done' ? '已经出到第 ' + s.shown + ' 个 token' : '还在' + (s.phase === 'queue' ? '排队' : ' Prefill')); };
-    h += '<p class="now">这一刻 t = ' + v + ' ms：' + say(1, a) + (S.played[2] ? '；' + say(2, b) : '') + '。</p>';
-  }
-  el.innerHTML = h;
-}
-function lock() {
-  send.disabled = S.playing; again.disabled = S.playing || !S.played[1];
-  scrub.disabled = S.playing || !S.played[1]; hit.disabled = S.playing || !S.played[2];
-  send.textContent = S.played[1] ? '重发一次' : '发送请求';
-}
-function settle() {
-  S.playing = false; S.t[1] = S.t[2] = Infinity; scrub.value = C.axis; $('scrubOut').textContent = '全程'; plot.classList.remove('scrubbing');
-  fx.boost(1); lock(); paint(); gap(); read();
-}
-function play(both) {
-  cancelAnimationFrame(S.raf);
-  S.played[1] = true; if (both) S.played[2] = true;
-  build(1); build(2);
-  if (rm.matches) return settle();                      // 减少动态效果：直接给出完整的时间线
-  S.playing = true; fx.boost(2.8); lock(); gap(); read(); plot.classList.remove('scrubbing');
-  const end = (both ? Math.max(S.r[1].total, S.r[2].total) : S.r[1].total) + 80, t0 = performance.now();
-  const step = now => {
-    const t = (now - t0) / 3;
-    S.t[1] = t; S.t[2] = both ? t : Infinity;
-    paint();
-    if (t < end) S.raf = requestAnimationFrame(step); else settle();
-  };
-  S.raf = requestAnimationFrame(step);
-}
-function seek(v) {
-  v = Math.max(0, Math.min(C.axis, Math.round(v / 5) * 5));
-  scrub.value = v;
-  const full = v >= C.axis;
-  S.t[1] = S.t[2] = full ? Infinity : v;
-  $('scrubOut').textContent = full ? '全程' : 't = ' + v + ' ms';
-  plot.classList.toggle('scrubbing', !full); plot.style.setProperty('--c', pc(v));
-  paint(); read();
-}
-send.addEventListener('click', () => play(false));
-again.addEventListener('click', () => play(true));
-scrub.addEventListener('input', () => seek(+scrub.value));
-hit.addEventListener('input', () => {
-  S.r[2] = Z.run(+hit.value);
-  $('hitOut').textContent = S.r[2].hit + ' / ' + C.prefix + ' tokens';
-  build(1); build(2); paint(); gap(); read();
-});
-// 直接在轨道上拖，也能移动时间
-let drag = false;
-const toMs = e => { const r = plot.getBoundingClientRect(); return (e.clientX - r.left) / r.width * C.axis; };
-plot.addEventListener('pointerdown', e => { if (scrub.disabled) return; drag = true; plot.setPointerCapture(e.pointerId); seek(toMs(e)); });
-plot.addEventListener('pointermove', e => { if (drag) seek(toMs(e)); });
-['pointerup', 'pointercancel'].forEach(k => plot.addEventListener(k, () => { drag = false; }));
-build(1); build(2); paint(); lock();
-
-/* ============ 作品一：规划表 → 拓扑图 ============ */
-(function () {
-  const P = {A: [58, 52], B: [302, 52], C: [92, 186], D: [288, 176]}, rows = $('rows'), topo = $('topo');
-  let done = false, timers = [];
-  rows.innerHTML = Z.LINKS.map(l => '<tr data-l="' + l.id + '" tabindex="0"><td>' + l.id + '</td><td>站 ' + l.a + '</td><td>站 ' + l.b + '</td><td class="as">待分配</td></tr>').join('');
-  let g = '';
-  Z.LINKS.forEach(l => {
-    const a = P[l.a], b = P[l.b], at = k => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k], u = at(.24), d = at(.76);
-    g += '<line class="lk" data-l="' + l.id + '" x1="' + a[0] + '" y1="' + a[1] + '" x2="' + b[0] + '" y2="' + b[1] + '"/>';
-    g += '<circle class="end u" data-l="' + l.id + '" cx="' + u[0] + '" cy="' + u[1] + '" r="4.5"/><circle class="end d" data-l="' + l.id + '" cx="' + d[0] + '" cy="' + d[1] + '" r="4.5"/>';
-    g += '<line class="hitbox" data-l="' + l.id + '" x1="' + a[0] + '" y1="' + a[1] + '" x2="' + b[0] + '" y2="' + b[1] + '"/>';
-  });
-  Object.keys(P).forEach(k => { g += '<circle class="nd" cx="' + P[k][0] + '" cy="' + P[k][1] + '" r="17"/><text x="' + P[k][0] + '" y="' + P[k][1] + '">' + k + '</text>'; });
-  g += '<circle class="u" cx="14" cy="236" r="4.5"/><text class="lg" x="26" y="236">U 端</text><circle class="d" cx="84" cy="236" r="4.5"/><text class="lg" x="96" y="236">D 端</text><text class="lg" x="150" y="236">同一条链路两端必须成对</text>';
-  topo.innerHTML = g;
-
-  const each = (id, f) => document.querySelectorAll('#w1 [data-l="' + id + '"]').forEach(f);
-  const hot = id => { document.querySelectorAll('#w1 .hot[data-l]').forEach(n => n.classList.remove('hot')); if (id) each(id, n => { if (n.matches('tr,.lk')) n.classList.add('hot'); }); };
-  const pick = e => { const n = e.target.closest('[data-l]'); hot(n ? n.dataset.l : null); };
-  [rows, topo].forEach(el => { el.addEventListener('pointerover', pick); el.addEventListener('click', pick); el.addEventListener('focusin', pick); el.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') hot(null); }); });
-
-  function mark(x, on) {
-    each(x.id, n => { if (!n.matches('.hitbox')) n.classList.toggle('done', on); });
-    rows.querySelector('[data-l="' + x.id + '"] .as').textContent = on ? x.aEnd + ' ↔ ' + x.bEnd : '待分配';
-  }
-  function set(on) {
-    timers.forEach(clearTimeout); timers = [];
-    const list = Z.assign(Z.LINKS), ok = Z.check(list);
-    done = on; $('assign').disabled = on; $('unassign').hidden = !on;
-    const fin = () => { $('bidiNote').textContent = on
-      ? '分配后：' + list.length + ' 条链路、' + list.length * 2 + ' 个端口，逐条校验' + (ok ? '全部成对' : '发现不成对') + '。省下的时间来自这里：不用再一行一行对规则，也不用照着表改图。'
-      : '分配前：每条链路的两端都还空着。手工做，要一行一行对规则、填表，再照着表改图。'; };
-    if (!on || rm.matches) { list.forEach(x => mark(x, on)); return fin(); }
-    list.forEach((x, i) => timers.push(setTimeout(() => { mark(x, true); hot(x.id); if (i === list.length - 1) { timers.push(setTimeout(() => hot(null), 500)); fin(); } }, 260 * i)));
-  }
-  $('assign').addEventListener('click', () => set(true));
-  $('unassign').addEventListener('click', () => { set(false); $('assign').focus(); });
-})();
-
-/* ============ 作品二：一条实验记录 ============ */
-(function () {
-  const rec = {round: 3, exitCode: 0, metric: null}, el = $('rec');
-  let stage = 'ask', pick = null;
-  const row = (k, v, cls) => '<div class="row"><span>' + k + '</span><b' + (cls ? ' class="' + cls + '"' : '') + '>' + v + '</b></div>';
-  function render(focus) {
-    const v = Z.judge(rec);
-    let h;
-    if (stage === 'next') {
-      const nx = Z.nextRound(rec, v);
-      h = '<div class="rec-h"><span>实验记录 · 第 ' + nx.round + ' 轮</span><span>示意</span></div><p class="carry">' + nx.carried + '</p>' + row('压测命令', '还没有执行') + row('主指标', '等这一轮采到再说')
-        + '<p class="verdict">原因跟着进了下一轮：这一轮一开始，就知道上一轮卡在哪。</p><button type="button" class="btn btn-s" data-go="judged">回到上一轮</button>';
-    } else {
-      h = '<div class="rec-h"><span>实验记录 · 第 ' + rec.round + ' 轮</span><span>示意</span></div>' + row('压测命令', '已执行') + row('退出码', rec.exitCode + '，正常退出', 'ok') + row('主指标', '没有采到', 'no');
-      if (stage === 'ask') h += '<p class="ask">你来判：这一轮算成功吗？</p><div class="ctl" style="margin:0"><button type="button" class="btn btn-s" data-pick="yes">算成功</button><button type="button" class="btn btn-s" data-pick="no">不算</button></div>';
-      else h += row('状态', '<span class="badge">' + v.status + '</span>')
-        + '<p class="verdict">' + (pick === 'yes' ? '我的工具不这么判。退出码只说明命令没有崩，说明不了这轮实验拿到了结果。' : '我的工具也不算它成功。不过它也不记成失败：命令没有出错，缺的是证据。') + '它把这一轮标成 <b>blocked</b>，记下缺了哪份证据，再把原因带进下一轮。</p>'
-        + row('缺失的证据', v.missing.join('、'), 'no') + row('带进下一轮', v.carry)
-        + '<div class="ctl" style="margin-top:18px"><button type="button" class="btn btn-a btn-s" data-go="next">进入下一轮</button><button type="button" class="btn btn-s" data-go="ask">重新判一次</button></div>';
-    }
-    el.innerHTML = h;
-    if (focus) { const b = el.querySelector('button'); if (b) b.focus({preventScroll: true}); }
-  }
-  el.addEventListener('click', e => {
-    const b = e.target.closest('button'); if (!b) return;
-    if (b.dataset.pick) { pick = b.dataset.pick; stage = 'judged'; } else stage = b.dataset.go;
-    render(true);
-  });
-  render(false);
-})();
-})();
-</script>
+<script src="assets/core.js"></script>
+<script src="assets/land.js"></script>
+<script src="assets/map.js"></script>
+<script src="assets/app.js"></script>
 </body>
 </html>
