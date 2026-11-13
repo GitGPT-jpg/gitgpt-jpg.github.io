@@ -217,15 +217,67 @@ function gateApp(box) {
   const X = ZT.xiaobei, BARS = {ruled_out: 0, pending: 1, suspected: 2, confirmed: 3};
   const ev = {qp: Object.assign({}, X.GATES.qp.initial), ep: Object.assign({}, X.GATES.ep.initial)};
   let gate = 'qp', last = null;
-  box.innerHTML = `<div class="gt-top"><div class="gt-in"></div>
+  box.innerHTML = `<section class="node-choice" aria-label="节点补查演练">
+      <h4>现在交班，还是再取一次证据？</h4>
+      <p>就绪探针返回 503，detokenizer 心跳停止。相关排除检查已完成，第一次节点查询超时。交班简报里，QP 耗尽只能写“疑似”。</p>
+      <label>补查场景（模拟） <select class="node-scenario">
+        <option value="exhausted">节点恢复响应 · 实测耗尽</option>
+        <option value="sufficient">节点恢复响应 · 资源充足</option>
+        <option value="timeout">节点持续超时</option>
+      </select></label>
+      <div class="node-actions">
+        <button class="btn" type="button" data-action="brief">现在出简报</button>
+        <button class="btn btn-ac" type="button" data-action="query">再查一次节点</button>
+      </div>
+      <p class="node-result" role="status"></p>
+    </section>
+    <div class="gt-top"><div class="gt-in"></div>
       <div class="meter" aria-live="polite"><small>确定性</small><strong></strong><ol aria-hidden="true"><li></li><li></li><li></li></ol></div></div>
     <h4>九行简报 <em>给值班人员</em></h4><dl class="brief"></dl>
     <details class="report"><summary>完整报告：证据、未决项、验证方法</summary><div class="report-in"></div></details>
     <p class="synth">合成案例。门禁的判定在你的浏览器里执行：拨动证据，看结论跟到哪一步。</p>`;
   const inputs = box.querySelector('.gt-in'), meter = box.querySelector('.meter'), briefEl = box.querySelector('.brief'), rep = box.querySelector('.report-in');
-  const hyp = seg('怀疑的根因', ['qp', 'ep'].map(k => [k, X.GATES[k].name]), gate, v => { gate = v; last = null; controls(); render(); });
+  const decision = box.querySelector('.node-choice');
+  const scenario = decision.querySelector('select');
+  const result = decision.querySelector('[role="status"]');
+  const sampleSeconds = {exhausted: 2, sufficient: 2, timeout: 5};
+  const hyp = seg('怀疑的根因', ['qp', 'ep'].map(k => [k, X.GATES[k].name]), gate, v => {
+    gate = v;
+    last = null;
+    decision.hidden = gate !== 'qp';
+    result.textContent = '';
+    controls();
+    render();
+  });
+  function runChoice(retry) {
+    // 每次都从同一份交班证据开始，便于比较两种选择。
+    const initial = X.GATES.qp.initial;
+    const before = X.diagnose('qp', initial);
+    const outcome = retry ? scenario.value : initial.qp;
+    ev.qp = {...initial, qp: outcome};
+    const after = X.diagnose('qp', ev.qp);
+    const change = before.level === after.level
+      ? '仍为“' + X.LEVELS[after.level] + '”'
+      : '从“' + X.LEVELS[before.level] + '”变为“' + X.LEVELS[after.level] + '”';
+    controls();
+    render();
+    result.textContent = '额外等待 ' + (retry ? sampleSeconds[outcome] : 0) +
+      ' 秒（模拟） · QP 耗尽' + change + '。' + after.reason;
+  }
+  decision.querySelector('[data-action="brief"]').addEventListener('click', () => runChoice(false));
+  decision.querySelector('[data-action="query"]').addEventListener('click', () => runChoice(true));
+  scenario.addEventListener('change', () => {
+    ev.qp = {...X.GATES.qp.initial};
+    result.textContent = '';
+    controls();
+    render();
+  });
   function controls() {
-    inputs.replaceChildren(field('怀疑的根因', hyp.el), ...X.GATES[gate].checks.map(c => field(c.label, seg(c.label, Object.entries(c.states), ev[gate][c.id], v => { ev[gate][c.id] = v; render(); }).el)));
+    inputs.replaceChildren(field('怀疑的根因', hyp.el), ...X.GATES[gate].checks.map(c => field(c.label, seg(c.label, Object.entries(c.states), ev[gate][c.id], v => {
+      ev[gate][c.id] = v;
+      result.textContent = '';
+      render();
+    }).el)));
   }
   function render() {
     const c = X.diagnose(gate, ev[gate]), lines = X.brief(c), r = X.report(c);
