@@ -34,8 +34,8 @@
     </button>
     <button class="chip chip-bj" id="chip-beijing" type="button" data-go="beijing">
       <span class="chip-k">北京 <i>BEIJING</i></span>
-      <span class="chip-s">百度<!-- confidential-ok --> · 训练推理</span> <!-- confidential-ok -->
-      <span class="chip-t">排障智能体「北辰」</span>
+      <span class="chip-s">百度 · ACG</span>
+      <span class="chip-t">排障智能体「小北」</span>
       <span class="chip-t">推理研发工作台</span>
       <span class="chip-go">点击进入 <b aria-hidden="true">→</b></span>
     </button>
@@ -60,10 +60,10 @@
 <main>
 
 <section class="intro" id="intro" aria-labelledby="name">
-  <p class="kicker">百度<!-- confidential-ok --> · 训练推理</p> <!-- confidential-ok -->
+  <p class="kicker">百度 · ACG</p>
   <h1 id="name">江尘</h1>
   <p class="lead">我做面向真实工程任务的智能体。</p>
-  <p class="bio">工作横跨通信设备运维与大模型推理系统：先在中兴通讯外派智利，现在在北京，就职于百度<!-- confidential-ok -->训练推理。</p> <!-- confidential-ok -->
+  <p class="bio">工作横跨通信设备运维与大模型推理系统：先在中兴通讯外派智利，现在在中国北京，就职于百度ACG。</p>
   <p class="kicker q-k">我关心三个具体问题</p>
   <ol class="qs">
     <li><a href="#harness" data-site="chile"><span>模型提出的动作，在什么条件下可以执行？</span><em>智利</em></a></li>
@@ -112,20 +112,20 @@
     <p class="site-time">当地 <b id="p-t-bj">--:--</b><em id="p-d-bj"></em></p>
     <a class="site-x" href="#" aria-label="关闭，回到全景">×</a>
     <nav class="site-nav" aria-label="北京的三件事">
-      <a href="#xiaobei">北辰 · 诊断</a>
-      <a href="#evolve">北辰 · 自进化</a>
+      <a href="#xiaobei">小北 · 诊断</a>
+      <a href="#evolve">小北 · 自进化</a>
       <a href="#workbench">推理研发工作台</a>
     </nav>
   </header>
   <div class="site-body">
-    <p class="kicker">百度<!-- confidential-ok --> · 训练推理</p> <!-- confidential-ok -->
-    <h2 id="beijing-h">自进化排障智能体「北辰」</h2>
-    <p class="first">进入百度<!-- confidential-ok -->后，我开发了面向 Prefill/Decode 分离推理引擎的自进化排障智能体「北辰」。</p> <!-- confidential-ok -->
+    <p class="kicker">百度 · ACG</p>
+    <h2 id="beijing-h">自进化排障智能体「小北」</h2>
+    <p class="first">进入百度后，我开发了面向 Prefill/Decode 分离推理引擎的自进化排障智能体「小北」。</p>
     <p>这个场景的难点是故障症状高度共性。<code>detokenizer</code> 心跳停止、就绪探针返回 503，可能同时出现在内存耗尽、MoE 专家并行组重配置、RDMA 资源耗尽或 KV 传输异常等事件中。</p>
     <figure class="fan" id="fan-app"></figure>
 
     <p>我把系统职责划分为主理人、诊断专家和复盘专家。</p>
-    <ol class="roles" aria-label="北辰的三个角色">
+    <ol class="roles" aria-label="小北的三个角色">
       <li><b>主理人</b><span>处理每轮入口与任务路由</span></li>
       <li><b>诊断专家</b><span>按故障域并行调用取证工具</span>
         <ul><li>日志</li><li>服务指标</li><li>节点指标</li><li>Pod 生命周期</li><li>单请求轨迹</li><li>对应版本源码</li></ul>
@@ -139,7 +139,7 @@
       <header class="rig-h">
         <p class="rig-q">多个故障能产生相同症状时，系统凭什么确认根因？</p>
         <h3 id="xiaobei-h">证据门禁：证据到哪一步，结论就说到哪一步</h3>
-        <p class="rig-note">北辰的核心设计，是把每类根因需要满足的证据条件写成可执行的门禁。排查 EP 组故障，要联合核对 worker 心跳、缩容或重配置事件以及请求路由变化；怀疑 RDMA 队列对（QP）耗尽，则要完成相关排除检查，并取得故障节点的 QP 实测。</p>
+        <p class="rig-note">小北的核心设计，是把每类根因需要满足的证据条件写成可执行的门禁。排查 EP 组故障，要联合核对 worker 心跳、缩容或重配置事件以及请求路由变化；怀疑 RDMA 队列对（QP）耗尽，则要完成相关排除检查，并取得故障节点的 QP 实测。</p>
       </header>
       <div class="rig-app" id="gate-app"></div>
     </section>
@@ -162,7 +162,7 @@
     <section class="rig" id="workbench" aria-labelledby="workbench-h">
       <header class="rig-h">
         <p class="rig-q rig-now">正在开发</p>
-        <h3 id="workbench-h">基于自研 AI 编程助手的推理研发工作台插件</h3>
+        <h3 id="workbench-h">基于 Comate 的推理研发工作台插件</h3>
         <p class="rig-note">把这些经验用于需要多轮修改和实验的研发任务。Agent 根据目标组织实验，CLI 管理任务状态和轮次，独立验收器根据真实退出码、主指标、阈值及硬约束判定结果。</p>
       </header>
       <div class="rig-app" id="bench-app"></div>
@@ -177,23 +177,13 @@
 </main>
 
 <footer class="foot" id="foot">
-  <p class="route"><a href="#chile">中兴通讯 · 智利</a><i aria-hidden="true">→</i><a href="#beijing">百度<!-- confidential-ok --> · 北京</a></p> <!-- confidential-ok -->
+  <p class="route"><a href="#chile">中兴通讯 · 智利</a><i aria-hidden="true">→</i><a href="#beijing">百度 · 北京</a></p>
   <p class="meta"><span id="beam-meta">圣地亚哥 → 北京 · 大圆航线</span><span>地图的明暗是此刻的昼夜</span></p>
 </footer>
 
-<!-- 从南美上空拉远，再把镜头交给现有的跨洋航线。 -->
-<div class="opening" id="opening">
-  <div class="orbit-shot" aria-hidden="true">
-    <div class="orbit-disc">
-      <img class="orbit-poster" alt="" width="3840" height="3840" decoding="async" fetchpriority="high">
-    </div>
-    <div class="orbit-caption" lang="zh-CN">
-      <span>33°27′ S &nbsp; 70°40′ W</span>
-      <strong>圣地亚哥</strong>
-      <small lang="es">Santiago de Chile</small>
-    </div>
-    <small class="orbit-credit">NASA / Blue Marble</small>
-  </div>
+<!-- 开场动画：旋转的地球 → 虚拟化成点阵地图 → 点亮智利 → 光束连到北京 → 名片浮现 -->
+<div class="opening" id="opening" aria-hidden="true">
+  <canvas id="opening-cv"></canvas>
   <button type="button" class="opening-skip" id="opening-skip">跳过动画 <span aria-hidden="true">→</span></button>
 </div>
 
