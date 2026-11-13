@@ -342,7 +342,7 @@ applyMode();
 
 const map = window.ZTMap.create({
   stage: $('stage'), base: $('map-base'), fx: $('map-fx'), land: ZT.createLand(window.ZT_LAND),
-  labels: {chile: chips.chile, beijing: chips.beijing, nanjing: $('pin-nanjing'), tag: $('beam-tag')},
+  labels: {chile: chips.chile, beijing: chips.beijing, tag: $('beam-tag')},
   wide: () => root.dataset.mode === 'wide',
   reduced: () => rm.matches,
   onPick: id => go(id),

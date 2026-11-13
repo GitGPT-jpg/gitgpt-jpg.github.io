@@ -62,7 +62,6 @@ test('陆地位图：只分陆地和海，单独标出智利本土', () => {
   const land = ZT.createLand(globalThis.ZT_LAND);
   const at = (lon, lat) => land.isLand(lon, lat);
   assert.ok(at(santiago.lon, santiago.lat) && at(beijing.lon, beijing.lat));
-  assert.ok(at(geo.PLACES.nanjing.lon, geo.PLACES.nanjing.lat));
   assert.ok(at(santiago.lon + 360, santiago.lat), '经度可以绕一圈');
   assert.ok(at(121, 23.7) && at(109.7, 19.2) && at(135, -25) && at(-100, 40));
   assert.ok(!at(-150, 0) && !at(-175, -30) && !at(160, 40) && !at(120, 38.6), '太平洋和渤海是海');

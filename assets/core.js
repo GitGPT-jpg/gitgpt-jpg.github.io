@@ -8,8 +8,7 @@ const EARTH_KM = 6371.0088, LIGHT_KM_S = 299792.458;
 
 const PLACES = Object.freeze({
   santiago: Object.freeze({lon: -70.6693, lat: -33.4489, tz: 'America/Santiago'}),
-  beijing: Object.freeze({lon: 116.4074, lat: 39.9042, tz: 'Asia/Shanghai'}),
-  nanjing: Object.freeze({lon: 118.7969, lat: 32.0603})
+  beijing: Object.freeze({lon: 116.4074, lat: 39.9042, tz: 'Asia/Shanghai'})
 });
 
 // Miller 圆柱投影。x 直接用经度（度），y 也折算成“度”，赤道附近两个方向等比例。

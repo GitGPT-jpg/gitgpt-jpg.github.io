@@ -13,7 +13,6 @@ const SITES = {
   chile: Object.assign(pt(P.santiago), {rgb: '255,179,71'}),
   beijing: Object.assign(pt(P.beijing), {rgb: '95,225,255'})
 };
-const MINOR = {nanjing: pt(P.nanjing)};
 // 光束从智利出发向右（东），跨大西洋、经欧洲上空弯过去，落在北京。bow=50° 让弧顶正对欧洲中部。
 const BOW = 50;
 const BEAM = geo.eastArc(P.santiago, P.beijing, 200, BOW).map(p => ({x: p.lon, y: geo.millerY(p.lat)}));
@@ -231,12 +230,6 @@ function create(o) {
     c.setTransform(dpr, 0, 0, dpr, 0, 0);
     c.clearRect(0, 0, W, H);
 
-    // 来路上的小点：南京
-    const b = MINOR.nanjing, z = cam.k / k0, al = .4 + .5 * smooth(1.5, 3.5, z);
-    c.fillStyle = 'rgba(4,7,13,.9)'; c.strokeStyle = 'rgba(200,225,255,' + al + ')';
-    c.beginPath(); c.arc(sx(b.x), sy(b.y), 3.4, 0, TAU); c.fill(); c.stroke();
-    c.fillStyle = 'rgba(220,235,255,' + al + ')'; c.beginPath(); c.arc(sx(b.x), sy(b.y), 1.3, 0, TAU); c.fill();
-
     c.globalCompositeOperation = 'lighter';
     // 智利在呼吸；指上去更亮
     const breath = (still() ? .12 : .1 + .08 * Math.sin(t * 1.8)) + (hover === 'chile' ? .24 : view === 'chile' ? .08 : 0);
@@ -284,7 +277,6 @@ function create(o) {
       if (id === 'beijing' && wide) put(L[id], x - 18, sy(s.y) - 16, 1, 1, view === 'overview' || view === id);
       else put(L[id], x + q.dx * m, sy(s.y) + q.dy * m, q.ax, q.ay, view === 'overview' || view === id);
     }
-    put(L.nanjing, sx(MINOR.nanjing.x) + 9, sy(MINOR.nanjing.y), 0, .5, z >= 3);
     // “航线 20,040 KM”标签悬在光弧顶点下方：扫描光束折线，取落在标签横向范围内的
     // 最大屏幕 y，再把标签放到“辉光下缘(半宽 13px)再留 8px”之下，任何尺寸都不被光束压字。
     // 极窄宽屏下标签右端可能碰到“北京”标签，向左收到其左缘之外（所需的 y 由扫描自动加深）。
